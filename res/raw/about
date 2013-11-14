@@ -1,0 +1,31 @@
+<h1>TicTacToe</h1>
+
+<p>Copyright 2013 Andrew Mahone</p>
+
+<p>Licensed under the <a
+href="http://www.apache.org/licenses/LICENSE-2.0">Apache License, Version
+2.0</a> (the "License"); you may not use this file except in compliance with the
+License.</p>
+
+<p>Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.</p>
+
+<p>The source for this app is available in the <a
+href="https://github.com/Unhelpful/Java-util">Java-util</a>, <a
+href="https://github.com/Unhelpful/TicTacToe">TicTacToe</a>, and <a
+href="https://github.com/Unhelpful/TicTacToeAndroidApp">TicTacToeAndroidApp</a>
+repositories on GitHub.</p>
+
+<p>The TicTacToe library uses math routines from the <a
+href="http://commons.apache.org/proper/commons-math/">Apache Commons Math
+Library</a>, licensed under the <a
+href="http://www.apache.org/licenses/LICENSE-2.0">Apache License, Version
+2.0</a>, and primitive
+collections from the <a href="http://trove.starlight-systems.com/">GNU Trove</a>
+library, licensed under the <a
+href="http://www.gnu.org/licenses/lgpl-2.1.html">GNU Lesser General Public
+License, version 2.1</a>
+

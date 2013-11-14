@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Tic Tac Toe</string>
+    <string name="action_about">About</string>
+    <string name="app_name">TicTacToe</string>
     <string name="p1_select_label">Player 1:</string>
     <string name="p2_select_label">Player 2:</string>
-    <string-array name="players_array">
-        <item>User</item>
-        <item>Random</item>
-        <item>Bean Counter</item>
-        <item>LMS Rank</item>
-    </string-array>
 </resources>

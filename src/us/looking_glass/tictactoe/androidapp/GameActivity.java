@@ -19,21 +19,31 @@ package us.looking_glass.tictactoe.androidapp;
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.database.Cursor;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.support.v7.app.ActionBarActivity;
+import android.text.Html;
+import android.text.Layout;
+import android.text.method.LinkMovementMethod;
 import android.util.Log;
-import android.view.View;
+import android.view.*;
 import android.widget.*;
 import us.looking_glass.tictactoe.Game;
 import us.looking_glass.tictactoe.Player;
+import us.looking_glass.util.Util;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Arrays;
 
-public class GameActivity extends Activity implements GameView.BoardTouchListener, AdapterView.OnItemSelectedListener {
+public class GameActivity extends ActionBarActivity implements GameView.BoardTouchListener, AdapterView.OnItemSelectedListener {
     long tally[] = null;
     Game game = null;
     long[] selectedPlayers = null;
@@ -42,11 +52,12 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
     private TicTacToeApp app = null;
 
 
-    private boolean initComplete = false;
     private LinearLayout topLayout;
     private GameView gameView;
     private TextView tallyView;
     private SimpleCursorAdapter playerSelectAdapter = null;
+    private View aboutWindowView;
+
     private Spinner[] playerSelect = new Spinner[2];
     private static final String[] spinnerQueryCols = new String[]{AppDB.KEY_ID, AppDB.KEY_NAME};
     private static final String[] spinnerAdapterCols = new String[]{AppDB.KEY_NAME};
@@ -134,7 +145,6 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
                     Log.d(TicTacToeApp.TAG, "seeding PRNG with saved seed");
                     Player.prng.setSeed(rngSeed);
                 }
-                initComplete = true;
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
@@ -173,6 +183,16 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
             }
         };
         bgThread.start();
+        aboutWindowView = getLayoutInflater().inflate(R.layout.textpopup, null);
+        TextView aboutTextView = (TextView) aboutWindowView.findViewById(R.id.aboutTextView);
+        String aboutText;
+        try {
+            aboutText = Util.stringFromStream(getResources().openRawResource(R.raw.about), Charset.defaultCharset());
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+        aboutTextView.setText(Html.fromHtml(aboutText));
+        aboutTextView.setMovementMethod(LinkMovementMethod.getInstance());
         Log.d(app.TAG, "GameActivity onCreate");
     }
 
@@ -279,6 +299,34 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
         Log.d(TicTacToeApp.TAG, String.format("onNothingSelected: parent %s", parent));
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.game_activity_actions, menu);
+        return super.onCreateOptionsMenu(menu);    //To change body of overridden methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()) {
+            case R.id.action_about:
+                Log.v(TicTacToeApp.TAG, "open about");
+                openAboutPopup();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    void openAboutPopup () {
+        PopupWindow aboutWindow = new PopupWindow(aboutWindowView);
+        aboutWindow.setWindowLayoutMode(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        aboutWindow.setFocusable(true);
+        aboutWindow.setBackgroundDrawable(new BitmapDrawable(getResources()));
+        aboutWindow.setOutsideTouchable(true);
+        aboutWindow.showAtLocation(topLayout, Gravity.CENTER, 0, 0);
     }
 
     public Game runGame(int turns) {

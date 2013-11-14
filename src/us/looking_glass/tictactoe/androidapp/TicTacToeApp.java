@@ -20,13 +20,14 @@ import android.app.Application;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.os.Handler;
 import android.util.Log;
-import us.looking_glass.tictactoe.*;
+import us.looking_glass.tictactoe.Player;
 import us.looking_glass.util.Serializer;
 
 import java.lang.ref.WeakReference;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 public class TicTacToeApp extends Application {
     Map<Long, WeakReference<Player>> idToPlayer = new HashMap<Long, WeakReference<Player>>();

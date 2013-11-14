@@ -16,31 +16,22 @@
 
 package us.looking_glass.tictactoe.androidapp;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.content.ContentValues;
 import android.content.res.Configuration;
-import android.content.res.Resources;
 import android.database.Cursor;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.v7.app.ActionBarActivity;
 import android.text.Html;
-import android.text.Layout;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.*;
 import android.widget.*;
-import us.looking_glass.tictactoe.Board;
 import us.looking_glass.tictactoe.Game;
 import us.looking_glass.tictactoe.Player;
-import us.looking_glass.util.Util;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Arrays;

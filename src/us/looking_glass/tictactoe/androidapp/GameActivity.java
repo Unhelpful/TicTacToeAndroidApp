@@ -17,6 +17,7 @@
 package us.looking_glass.tictactoe.androidapp;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.ContentValues;
 import android.content.res.Configuration;
 import android.content.res.Resources;
@@ -177,12 +178,7 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
         bgThread.start();
         aboutWindowView = getLayoutInflater().inflate(R.layout.textpopup, null);
         TextView aboutTextView = (TextView) aboutWindowView.findViewById(R.id.aboutTextView);
-        String aboutText;
-        try {
-            aboutText = Util.stringFromStream(getResources().openRawResource(R.raw.about), Charset.defaultCharset());
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
+        String aboutText = getString(R.string.about_text);
         aboutTextView.setText(Html.fromHtml(aboutText));
         aboutTextView.setMovementMethod(LinkMovementMethod.getInstance());
         Log.d(app.TAG, "GameActivity onCreate");
@@ -309,12 +305,12 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
     }
 
     void openAboutPopup () {
-        PopupWindow aboutWindow = new PopupWindow(aboutWindowView);
-        aboutWindow.setWindowLayoutMode(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        aboutWindow.setFocusable(true);
-        aboutWindow.setBackgroundDrawable(new BitmapDrawable(getResources()));
-        aboutWindow.setOutsideTouchable(true);
-        aboutWindow.showAtLocation(topLayout, Gravity.CENTER, 0, 0);
+        Dialog aboutPopup = new Dialog(this);
+        aboutPopup.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        aboutPopup.setCancelable(true);
+        aboutPopup.setCanceledOnTouchOutside(true);
+        aboutPopup.setContentView(aboutWindowView);
+        aboutPopup.show();
     }
 
     public Game runGame(int turns) {

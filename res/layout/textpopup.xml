@@ -3,16 +3,18 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:orientation="vertical"
               android:layout_width="fill_parent"
-              android:layout_height="fill_parent" android:padding="4dip">
+              android:layout_height="fill_parent"
+              android:padding="2dip">
     <ScrollView
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:id="@+id/scrollView" android:background="@android:drawable/dialog_holo_dark_frame">
+            android:id="@+id/scrollView"
+            android:alpha="1.0"
+            android:padding="2dip">
         <TextView
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/aboutTextView"
-                android:paddingLeft="10dip" android:paddingRight="10dip" android:paddingEnd="3dip"
-                android:paddingStart="3dip"/>
+                />
     </ScrollView>
 </FrameLayout>

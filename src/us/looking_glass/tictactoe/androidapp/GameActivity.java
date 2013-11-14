@@ -58,7 +58,6 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
     private TextView tallyView;
     private SimpleCursorAdapter playerSelectAdapter = null;
     private View aboutWindowView;
-    private long[] prevSelectedPlayers = new long[]{ -1, -1 };
 
     private Spinner[] playerSelect = new Spinner[2];
     private static final String[] spinnerQueryCols = new String[]{AppDB.KEY_ID, AppDB.KEY_NAME};
@@ -350,10 +349,6 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
     }
 
     private void restoreGame () {
-        if (prevSelectedPlayers[0] == selectedPlayers[0] && prevSelectedPlayers[1] == selectedPlayers[1])
-            return;
-        prevSelectedPlayers[0] = selectedPlayers[0];
-        prevSelectedPlayers[1] = selectedPlayers[1];
         String whereString = AppDB.KEY_P1ID + "=" + Long.toString(selectedPlayers[0]) + " AND " + AppDB.KEY_P2ID + "=" + Long.toString(selectedPlayers[1]);
         Cursor result = app.db.query(true, AppDB.GAME_TABLE_NAME, AppDB.TALLY_GAME_RESULT_COLS, whereString, null, null, null, null, null);
         Game storedGame = null;

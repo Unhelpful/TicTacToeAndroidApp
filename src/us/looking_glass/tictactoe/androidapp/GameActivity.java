@@ -50,7 +50,6 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
     private GameView gameView;
     private TextView tallyView;
     private SimpleCursorAdapter playerSelectAdapter = null;
-    private View aboutWindowView;
 
     private Spinner[] playerSelect = new Spinner[2];
     private static final String[] spinnerQueryCols = new String[]{AppDB.KEY_ID, AppDB.KEY_NAME};
@@ -59,6 +58,8 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
     HandlerThread bgThread = null;
     Handler bgHandler = null;
     Handler handler = null;
+    private CharSequence aboutText;
+
     /**
      * Called when the activity is first created.
      */
@@ -168,11 +169,8 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
             }
         };
         bgThread.start();
-        aboutWindowView = getLayoutInflater().inflate(R.layout.textpopup, null);
-        TextView aboutTextView = (TextView) aboutWindowView.findViewById(R.id.aboutTextView);
-        String aboutText = getString(R.string.about_text);
-        aboutTextView.setText(Html.fromHtml(aboutText));
-        aboutTextView.setMovementMethod(LinkMovementMethod.getInstance());
+        String aboutTextString = getString(R.string.about_text);
+        aboutText = Html.fromHtml(aboutTextString);
         Logd("GameActivity onCreate");
     }
 
@@ -302,6 +300,10 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
 
     void openAboutPopup () {
         Dialog aboutPopup = new Dialog(this);
+        View aboutWindowView = getLayoutInflater().inflate(R.layout.textpopup, null);
+        TextView aboutTextView = (TextView) aboutWindowView.findViewById(R.id.aboutTextView);
+        aboutTextView.setText(aboutText);
+        aboutTextView.setMovementMethod(LinkMovementMethod.getInstance());
         aboutPopup.requestWindowFeature(Window.FEATURE_NO_TITLE);
         aboutPopup.setCancelable(true);
         aboutPopup.setCanceledOnTouchOutside(true);

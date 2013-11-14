@@ -33,6 +33,7 @@ import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.*;
 import android.widget.*;
+import us.looking_glass.tictactoe.Board;
 import us.looking_glass.tictactoe.Game;
 import us.looking_glass.tictactoe.Player;
 import us.looking_glass.util.Util;
@@ -57,6 +58,7 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
     private TextView tallyView;
     private SimpleCursorAdapter playerSelectAdapter = null;
     private View aboutWindowView;
+    private long[] prevSelectedPlayers = new long[]{ -1, -1 };
 
     private Spinner[] playerSelect = new Spinner[2];
     private static final String[] spinnerQueryCols = new String[]{AppDB.KEY_ID, AppDB.KEY_NAME};
@@ -134,7 +136,6 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
                     players[i] = app.getPlayer(selectedID);
                 }
 
-                restoreGame();
 
                 int[] rngSeed = app.getObject("rngSeed");
                 if (rngSeed == null) {
@@ -153,18 +154,10 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
                         playerSelect[1].setAdapter(playerSelectAdapter);
                         playerSelect[0].setSelection(selected[0]);
                         playerSelect[1].setSelection(selected[1]);
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                gameView.setBoardTouchListener(GameActivity.this);
-                                playerSelect[0].setOnItemSelectedListener(GameActivity.this);
-                                playerSelect[1].setOnItemSelectedListener(GameActivity.this);
-                            }
-                        });
-                        tallyView.setText(String.format("Result: %s\nP1 win: %d\nP2 win: %d\nDraw:   %d", lastResult == Game.DRAW ? "Draw" : lastResult == Game.P1_WIN ? "P1 Win" : lastResult == Game.P2_WIN ? "P2 Win" : "", tally[0], tally[1], tally[2]));
-                        gameView.setBoard(game.board());
-                        tallyView.invalidate();
-                        gameView.invalidate();
+                        gameView.setBoardTouchListener(GameActivity.this);
+                        playerSelect[0].setOnItemSelectedListener(GameActivity.this);
+                        playerSelect[1].setOnItemSelectedListener(GameActivity.this);
+                        restoreGame();
                     }
                 });
             }
@@ -256,7 +249,7 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
             tallyView.setText(String.format("Result: %s\nP1 win: %d\nP2 win: %d\nDraw:   %d", lastResult == Game.DRAW ? "Draw" : lastResult == Game.P1_WIN ? "P1 Win" : "P2 Win", tally[0], tally[1], tally[2]));
             tallyView.postInvalidate();
         }
-        gameView.postInvalidate();
+        gameView.invalidate();
     }
 
     @Override
@@ -273,7 +266,7 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
             tallyView.setText(String.format("Result: %s\nP1 win: %d\nP2 win: %d\nDraw:   %d", game.status() == Game.DRAW ? "Draw" : game.status() == Game.P1_WIN ? "P1 Win" : "P2 Win", tally[0], tally[1], tally[2]));
             tallyView.postInvalidate();;
         }
-        gameView.postInvalidate();
+        gameView.invalidate();
     }
 
     @Override
@@ -288,10 +281,6 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
                 players[i] = TicTacToeApp.app().getPlayer(id);
                 selectedPlayers[i] = id;
                 restoreGame();
-                gameView.setBoard(game.board());
-                gameView.invalidate();
-                tallyView.setText(String.format("Result:\nP1 win: %d\nP2 win: %d\nDraw:   %d", tally[0], tally[1], tally[2]));
-                tallyView.invalidate();
             }
         }
     }
@@ -361,6 +350,10 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
     }
 
     private void restoreGame () {
+        if (prevSelectedPlayers[0] == selectedPlayers[0] && prevSelectedPlayers[1] == selectedPlayers[1])
+            return;
+        prevSelectedPlayers[0] = selectedPlayers[0];
+        prevSelectedPlayers[1] = selectedPlayers[1];
         String whereString = AppDB.KEY_P1ID + "=" + Long.toString(selectedPlayers[0]) + " AND " + AppDB.KEY_P2ID + "=" + Long.toString(selectedPlayers[1]);
         Cursor result = app.db.query(true, AppDB.GAME_TABLE_NAME, AppDB.TALLY_GAME_RESULT_COLS, whereString, null, null, null, null, null);
         Game storedGame = null;
@@ -372,13 +365,15 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
                 storedTally = (long[]) app.serializer.fromBytes(result.getBlob(result.getColumnIndexOrThrow(AppDB.KEY_TALLY)));
                 lastResult = (byte) result.getInt(result.getColumnIndexOrThrow(AppDB.KEY_RESULT));
             } catch (ClassCastException e) {
+
             } catch (IllegalStateException e) {
             }
         }
-        Log.v(TicTacToeApp.TAG, String.format("restoreGame: %s %s", game, storedTally == null ? "null" : Arrays.toString(storedTally)));
+        Log.v(TicTacToeApp.TAG, String.format("restoreGame: %s %s", storedGame, storedTally == null ? "null" : Arrays.toString(storedTally)));
         if (storedGame != null) {
             game = storedGame;
         } else {
+            Log.v(TicTacToeApp.TAG, "Game is null");
             newGame();
         }
         if (storedTally != null && storedTally.length == 6) {
@@ -386,6 +381,18 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
         } else {
             tally = new long[6];
         }
+        updateTally();
+        updateBoard();
+    }
+
+    private void updateTally() {
+        tallyView.setText(String.format("Result: %s\nP1 win: %d\nP2 win: %d\nDraw:   %d", lastResult == Game.DRAW ? "Draw" : lastResult == Game.P1_WIN ? "P1 Win" : lastResult == Game.P2_WIN ? "P2 Win" : "", tally[0], tally[1], tally[2]));
+        tallyView.invalidate();
+    }
+
+    private void updateBoard() {
+        gameView.setBoard(game.board());
+        gameView.invalidate();
     }
 
     private void storeGame () {

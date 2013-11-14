@@ -37,6 +37,8 @@ public class GameView extends View {
     float[] boxEdge = new float[6];
     private Board board = null;
     private BoardTouchListener boardTouchListener;
+    final static boolean debug = false;
+    private final static String TAG = "TicTacToe:GameView";
 
     public GameView(Context context) {
         super(context);
@@ -68,7 +70,7 @@ public class GameView extends View {
         }
         lockedWidth += hPadding;
         lockedHeight += vPadding;
-        Log.d(TicTacToeApp.TAG, String.format("onMeasure: set dimensions %dx%d", lockedWidth, lockedHeight));
+        Logd("onMeasure: set dimensions %dx%d", lockedWidth, lockedHeight);
         super.onMeasure(MeasureSpec.makeMeasureSpec(lockedWidth, MeasureSpec.EXACTLY),
                 MeasureSpec.makeMeasureSpec(lockedHeight, MeasureSpec.EXACTLY));
         width = lockedWidth;
@@ -155,5 +157,20 @@ public class GameView extends View {
     static interface BoardTouchListener {
         void onClick(GameView source, int x, int y);
         void onClick(GameView source, float x, float y);
+    }
+
+    private static final void Logd(String text, Object... args) {
+        if (debug) {
+            if (args != null && args.length > 0)
+                text = String.format(text, args);
+            Log.d(TAG, text);
+        }
+    }
+    private static final void Logv(String text, Object... args) {
+        if (debug) {
+            if (args != null && args.length > 0)
+                text = String.format(text, args);
+            Log.v(TAG, text);
+        }
     }
 }

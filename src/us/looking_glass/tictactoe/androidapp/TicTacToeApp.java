@@ -33,11 +33,12 @@ public class TicTacToeApp extends Application {
     Map<Long, WeakReference<Player>> idToPlayer = new HashMap<Long, WeakReference<Player>>();
     Map<Player, Long> playerToId = new WeakHashMap<Player, Long>();
     private static TicTacToeApp app;
-    final static String TAG = "TicTacToe";
+    final static String TAG = "TicTacToe:App";
     Serializer serializer;
     Serializer gameSerializer;
     private AppDB dbOpener;
     SQLiteDatabase db;
+    final static boolean debug = false;
 
     private void openDB() {
         dbOpener = new AppDB(this);
@@ -73,18 +74,18 @@ public class TicTacToeApp extends Application {
         if (idToPlayer.containsKey(id)) {
             WeakReference<Player> reference = idToPlayer.get(id);
             if (reference == null) {
-                Log.d(TAG, String.format("getPlayer(%d): retrieved null from cache", id));
+                Logd("getPlayer(%d): retrieved null from cache", id);
                 return null;
             }
             Player result = reference.get();
             if (result != null) {
-                Log.d(TAG, String.format("getPlayer(%d): retrieved %s from cache", id, result));
+                Logd("getPlayer(%d): retrieved %s from cache", id, result);
                 return result;
             }
         }
         String queryString = String.format("_id=%d", id);
         Cursor result = db.query(AppDB.BRAINS_TABLE_NAME, AppDB.ID_STATE_COLS, queryString, null, null, null, AppDB.KEY_ID, null);
-        Log.d(TAG, String.format("getPlayer(%d): %d results", id, result.getCount()));
+        Logd("getPlayer(%d): %d results", id, result.getCount());
         if (result.getCount() != 1 || !result.moveToFirst())
             return null;
         int colIndex = result.getColumnIndexOrThrow(AppDB.KEY_STATE);
@@ -96,7 +97,7 @@ public class TicTacToeApp extends Application {
             idToPlayer.put(id, null);
             return null;
         }
-        Log.d(TAG, String.format("getPlayer(%d): retrieved %s from db", id, playerResult));
+        Logd("getPlayer(%d): retrieved %s from db", id, playerResult);
         playerToId.put(playerResult, id);
         idToPlayer.put(id, new WeakReference<Player>(playerResult));
         return playerResult;
@@ -185,4 +186,20 @@ public class TicTacToeApp extends Application {
     public <T> void putState(String key, T value) {
         putState(key, value, serializer);
     }
+
+    private static final void Logd(String text, Object... args) {
+        if (debug) {
+            if (args != null && args.length > 0)
+                text = String.format(text, args);
+            Log.d(TAG, text);
+        }
+    }
+    private static final void Logv(String text, Object... args) {
+        if (debug) {
+            if (args != null && args.length > 0)
+                text = String.format(text, args);
+            Log.v(TAG, text);
+        }
+    }
+
 }

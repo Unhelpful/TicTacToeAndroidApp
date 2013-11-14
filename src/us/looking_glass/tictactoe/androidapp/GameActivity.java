@@ -44,7 +44,8 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
     byte lastResult = -2;
     private TicTacToeApp app = null;
 
-
+    final static boolean debug = false;
+    private final static String TAG="TicTacToe:GameActivity";
     private LinearLayout topLayout;
     private GameView gameView;
     private TextView tallyView;
@@ -85,7 +86,7 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
                 for (int i = 0; i < seed.length; i++) {
                     seed[i] = r.nextInt();
                 }
-                Log.d(TicTacToeApp.TAG, String.format("Got PRNG seed from SecureRandom %s %s", r.getAlgorithm(), r.getProvider().getInfo()));
+                Logd("Got PRNG seed from SecureRandom %s %s", r.getAlgorithm(), r.getProvider().getInfo());
                 Player.prng.setSeed(seed);
                 for (int i = 0; i < seed.length; i++) {
                     seed[i] = Player.prng.nextInt();
@@ -111,7 +112,7 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
                 selectedPlayers = app.getObject("selectedPlayers");
                 if (selectedPlayers == null)
                     selectedPlayers = new long[2];
-                Log.d(TicTacToeApp.TAG, String.format("selectedPlayers: %s", Arrays.toString(selectedPlayers)));
+                Logd("selectedPlayers: %s", Arrays.toString(selectedPlayers));
                 final int[] selected = new int[2];
                 for (int i = 0; i < 2; i++) {
                     long selectedID = playerSelectAdapter.getItemId(0);
@@ -122,7 +123,7 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
                             break;
                         }
                     }
-                    Log.d(TicTacToeApp.TAG, String.format("set player %d to index %d, id %d", i, selected[i], selectedID));
+                    Logd("set player %d to index %d, id %d", i, selected[i], selectedID);
                     selectedPlayers[i] = selectedID;
                     players[i] = app.getPlayer(selectedID);
                 }
@@ -130,17 +131,17 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
 
                 int[] rngSeed = app.getObject("rngSeed");
                 if (rngSeed == null) {
-                    Log.d(TicTacToeApp.TAG, "queueing entropy collection");
+                    Logd("queueing entropy collection");
                     bgHandler.post(entropyRunnable);
                 }
                 else {
-                    Log.d(TicTacToeApp.TAG, "seeding PRNG with saved seed");
+                    Logd("seeding PRNG with saved seed");
                     Player.prng.setSeed(rngSeed);
                 }
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        Log.d(TicTacToeApp.TAG, "Initialization completed");
+                        Logd("Initialization completed");
                         playerSelect[0].setAdapter(playerSelectAdapter);
                         playerSelect[1].setAdapter(playerSelectAdapter);
                         playerSelect[0].setSelection(selected[0]);
@@ -172,7 +173,7 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
         String aboutText = getString(R.string.about_text);
         aboutTextView.setText(Html.fromHtml(aboutText));
         aboutTextView.setMovementMethod(LinkMovementMethod.getInstance());
-        Log.d(app.TAG, "GameActivity onCreate");
+        Logd("GameActivity onCreate");
     }
 
     private void setOrientation(int orientation) {
@@ -190,7 +191,7 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
     public void onConfigurationChanged (Configuration newConfig)
     {
         TicTacToeApp app = TicTacToeApp.app();
-        Log.d(app.TAG, String.format("onConfigurationChanged: %s %d %d %d %d", newConfig, newConfig.orientation, newConfig.getLayoutDirection(), Configuration.ORIENTATION_LANDSCAPE, Configuration.ORIENTATION_PORTRAIT));
+        Logd("onConfigurationChanged: %s %d %d %d %d", newConfig, newConfig.orientation, newConfig.getLayoutDirection(), Configuration.ORIENTATION_LANDSCAPE, Configuration.ORIENTATION_PORTRAIT);
         super.onConfigurationChanged(newConfig);
         setOrientation(newConfig.orientation);
     }
@@ -198,8 +199,10 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
     @Override
     public void onPause() {
         super.onPause();
-        Log.d(TicTacToeApp.TAG, "onPause state save start");
-        long time = -System.currentTimeMillis();
+        Logd("onPause state save start");
+        long time;
+        if (debug)
+            time = -System.currentTimeMillis();
         app.db.beginTransaction();
         try {
             app.putState("selectedPlayers", selectedPlayers);
@@ -208,15 +211,17 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
         } finally {
             app.db.endTransaction();
         }
-        Log.d(TicTacToeApp.TAG, String.format("stored game %s", app.gameSerializer.toBytes(game)));
-        time += System.currentTimeMillis();
-        Log.d(TicTacToeApp.TAG, String.format("onPause state save completed in %dms", time));
+        Logd("stored game %s", app.gameSerializer.toBytes(game));
+        if (debug) {
+            time += System.currentTimeMillis();
+            Logd("onPause state save completed in %dms", time);
+        }
     }
 
     @Override
     public void onClick(GameView source, int x, int y) {
         TicTacToeApp app = TicTacToeApp.app();
-        Log.d(TicTacToeApp.TAG, String.format("Board touch: %d %d", x, y));
+        Logd("Board touch: %d %d", x, y);
         if (game.status() != Game.PLAYING) {
             savePlayers();
             gameView.setBoard(newGame().board());
@@ -257,12 +262,12 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        Log.d(TicTacToeApp.TAG, "onItemSelected");
+        Logd("onItemSelected");
         for (int i = 0; i < 2; i++) {
             if (parent == playerSelect[i]) {
                 if (selectedPlayers[i] == id)
                     return;
-                Log.d(TicTacToeApp.TAG, String.format("change player %d to %d", i, position));
+                Logd("change player %d to %d", i, position);
                 storeGame();
                 players[i] = TicTacToeApp.app().getPlayer(id);
                 selectedPlayers[i] = id;
@@ -273,7 +278,7 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
 
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
-        Log.d(TicTacToeApp.TAG, String.format("onNothingSelected: parent %s", parent));
+        Logd("onNothingSelected: parent %s", parent);
     }
 
     @Override
@@ -287,7 +292,7 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
             case R.id.action_about:
-                Log.v(TicTacToeApp.TAG, "open about");
+                Logv("open about");
                 openAboutPopup();
                 return true;
             default:
@@ -315,14 +320,14 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
     }
 
     public Game newGame() {
-        Log.d(TicTacToeApp.TAG, "newGame()");
+        Logv("newGame()");
         game = new Game(players[0], players[1]);
         return game;
     }
 
     private void savePlayer(int select) {
         if (players[select] == null) {
-            Log.d(TicTacToeApp.TAG, String.format("savePlayer(%d): null", select));
+            Logd("savePlayer(%d): null", select);
             return;
         }
         Player player = players[select];
@@ -330,7 +335,7 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
         long id = app.getPlayerID(player);
         ContentValues update = new ContentValues();
         update.put(AppDB.KEY_STATE, state);
-        Log.d(TicTacToeApp.TAG, String.format("savePlayer(%d): %s", select, update));
+        Logd("savePlayer(%d): %s", select, update);
         String selector = String.format("_id=%d", id);
         app.db.update(AppDB.BRAINS_TABLE_NAME, update, selector, null);
     }
@@ -351,11 +356,10 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
             } catch (IllegalStateException e) {
             }
         }
-        Log.v(TicTacToeApp.TAG, String.format("restoreGame: %s %s", storedGame, storedTally == null ? "null" : Arrays.toString(storedTally)));
+        Logd("restoreGame: %s %s", storedGame, storedTally == null ? "null" : Arrays.toString(storedTally));
         if (storedGame != null) {
             game = storedGame;
         } else {
-            Log.v(TicTacToeApp.TAG, "Game is null");
             newGame();
         }
         if (storedTally != null && storedTally.length == 6) {
@@ -387,7 +391,7 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
         values.put(AppDB.KEY_TALLY, tallyData);
         values.put(AppDB.KEY_RESULT, lastResult);
         long result = app.db.insert(AppDB.GAME_TABLE_NAME, null, values);
-        Log.v(TicTacToeApp.TAG, String.format("storeGame result: %d", result));
+        Logv("storeGame result: %d", result);
     }
 
     void savePlayers() {
@@ -402,6 +406,18 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
         }
     }
 
-
-
+    private static final void Logd(String text, Object... args) {
+        if (debug) {
+            if (args != null && args.length > 0)
+                text = String.format(text, args);
+            Log.d(TAG, text);
+        }
+    }
+    private static final void Logv(String text, Object... args) {
+        if (debug) {
+            if (args != null && args.length > 0)
+                text = String.format(text, args);
+            Log.v(TAG, text);
+        }
+    }
 }

@@ -37,7 +37,7 @@ public class GameView extends View {
     float[] boxEdge = new float[6];
     private Board board = null;
     private BoardTouchListener boardTouchListener;
-    final static boolean debug = true;
+    final static boolean debug = false;
     private final static String TAG = "TicTacToe:GameView";
 
     public GameView(Context context) {

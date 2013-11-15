@@ -177,14 +177,10 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
     }
 
     private void setOrientation(int orientation) {
-        if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+        if (orientation == Configuration.ORIENTATION_PORTRAIT)
             topLayout.setOrientation(LinearLayout.VERTICAL);
-            gameView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-        }
-        else if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        else if (orientation == Configuration.ORIENTATION_LANDSCAPE)
             topLayout.setOrientation(LinearLayout.HORIZONTAL);
-            gameView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT));
-        }
     }
 
     @Override

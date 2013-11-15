@@ -92,7 +92,7 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
                 Logd("Got PRNG seed from SecureRandom %s %s", r.getAlgorithm(), r.getProvider().getInfo());
                 Player.prng.setSeed(seed);
                 for (int i = 0; i < seed.length; i++) {
-                    seed[i] = Player.prng.nextInt();
+                    seed[i] = Player.prng.next(32);
                 }
                 app.db.beginTransaction();
                 try {

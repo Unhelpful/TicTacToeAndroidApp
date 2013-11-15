@@ -37,7 +37,7 @@ public class GameView extends View {
     float[] boxEdge = new float[6];
     private Board board = null;
     private BoardTouchListener boardTouchListener;
-    final static boolean debug = false;
+    final static boolean debug = true;
     private final static String TAG = "TicTacToe:GameView";
 
     public GameView(Context context) {
@@ -61,12 +61,24 @@ public class GameView extends View {
         int lockedHeight = MeasureSpec.getSize(heightSpec);
         int hPadding = getPaddingLeft() + getPaddingRight();
         int vPadding = getPaddingTop() + getPaddingBottom();
+        int wMode = MeasureSpec.getMode(widthSpec);
+        int hMode = MeasureSpec.getMode(heightSpec);
+        if (wMode == MeasureSpec.UNSPECIFIED)
+            lockedWidth = 0;
+        else if (hMode == MeasureSpec.UNSPECIFIED)
+            lockedHeight = 0;
+        Logv("width: %s, height: %s", MeasureSpec.toString(widthSpec), MeasureSpec.toString(heightSpec));
         lockedWidth -= hPadding;
         lockedHeight -= vPadding;
-        if (lockedHeight > 0) {
+        if (lockedWidth <= 0) {
+            Logv("expanding <0 width to match height");
             lockedWidth = lockedHeight;
-        } else if (lockedWidth > 0) {
+        } else if (lockedHeight <= 0) {
+            Logv("expanding <0 height to match width");
             lockedHeight = lockedWidth;
+        } else {
+            Logv("using minimum of %d and %d", lockedWidth, lockedHeight);
+            lockedHeight = lockedWidth = Math.min(lockedHeight, lockedWidth);
         }
         lockedWidth += hPadding;
         lockedHeight += vPadding;

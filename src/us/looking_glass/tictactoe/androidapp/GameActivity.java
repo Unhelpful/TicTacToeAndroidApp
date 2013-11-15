@@ -16,6 +16,7 @@
 
 package us.looking_glass.tictactoe.androidapp;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.ContentValues;
 import android.content.res.Configuration;
@@ -29,6 +30,7 @@ import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.*;
 import android.widget.*;
+import us.looking_glass.tictactoe.Board;
 import us.looking_glass.tictactoe.Game;
 import us.looking_glass.tictactoe.Player;
 
@@ -177,11 +179,11 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
     private void setOrientation(int orientation) {
         if (orientation == Configuration.ORIENTATION_PORTRAIT) {
             topLayout.setOrientation(LinearLayout.VERTICAL);
-            gameView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0));
+            gameView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         }
         else if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
             topLayout.setOrientation(LinearLayout.HORIZONTAL);
-            gameView.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT));
+            gameView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT));
         }
     }
 
@@ -299,15 +301,36 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
     }
 
     void openAboutPopup () {
-        Dialog aboutPopup = new Dialog(this);
-        View aboutWindowView = getLayoutInflater().inflate(R.layout.textpopup, null);
+        final Dialog aboutPopup = new Dialog(this);
+        View aboutWindowView = getLayoutInflater().inflate(R.layout.aboutpopup, null);
         TextView aboutTextView = (TextView) aboutWindowView.findViewById(R.id.aboutTextView);
+        final GameView aboutGameView = (GameView) aboutWindowView.findViewById(R.id.aboutIcon);
+        Board iconBoard = new Board(0x10a01);
+        aboutGameView.setBoard(iconBoard);
+        aboutGameView.invalidate();
         aboutTextView.setText(aboutText);
         aboutTextView.setMovementMethod(LinkMovementMethod.getInstance());
         aboutPopup.requestWindowFeature(Window.FEATURE_NO_TITLE);
         aboutPopup.setCancelable(true);
         aboutPopup.setCanceledOnTouchOutside(true);
         aboutPopup.setContentView(aboutWindowView);
+        aboutGameView.setBoardTouchListener(new GameView.BoardTouchListener() {
+            int touchCount = 0;
+            private void doTouch() {
+                if (++touchCount < 5) return;
+                aboutGameView.setBoardTouchListener(null);
+                bgHandler.post(new HowAboutANiceGameOfChess(aboutPopup, aboutGameView, handler));
+            }
+            @Override
+            public void onClick(GameView source, int x, int y) {
+                doTouch();
+            }
+
+            @Override
+            public void onClick(GameView source, float x, float y) {
+                doTouch();
+            }
+        });
         aboutPopup.show();
     }
 
@@ -324,6 +347,8 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
     public Game newGame() {
         Logv("newGame()");
         game = new Game(players[0], players[1]);
+        if (game.getPlayer(2) == null)
+            game.run();
         return game;
     }
 

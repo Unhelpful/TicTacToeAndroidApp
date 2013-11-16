@@ -4,7 +4,7 @@
     <string name="app_name">TicTacToe</string>
     <string name="p1_select_label">Player 1:</string>
     <string name="p2_select_label">Player 2:</string>
-    <string name="about_text"><![CDATA[<body style="text-align:justify">Licensed under the <a
+    <string name="about_text"><![CDATA[Licensed under the <a
             href="http://www.apache.org/licenses/LICENSE-2.0">Apache License, Version
             2.0</a> (the "License"); you may not use this file except in compliance with the
             License.<br/><br/>

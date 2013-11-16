@@ -19,12 +19,12 @@ package us.looking_glass.tictactoe.androidapp;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.ContentValues;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.support.v7.app.ActionBarActivity;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
@@ -38,7 +38,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Arrays;
 
-public class GameActivity extends ActionBarActivity implements GameView.BoardTouchListener, AdapterView.OnItemSelectedListener {
+public class GameActivity extends Activity implements GameView.BoardTouchListener, AdapterView.OnItemSelectedListener {
     long tally[] = null;
     Game game = null;
     long[] selectedPlayers = null;
@@ -306,6 +306,12 @@ public class GameActivity extends ActionBarActivity implements GameView.BoardTou
         aboutGameView.invalidate();
         aboutTextView.setText(aboutText);
         aboutTextView.setMovementMethod(LinkMovementMethod.getInstance());
+        TextView aboutVersionTextView = (TextView) aboutWindowView.findViewById(R.id.aboutVersion);
+        try {
+            aboutVersionTextView.setText("v" + getPackageManager().getPackageInfo(this.getPackageName(), 0).versionName);
+        } catch (PackageManager.NameNotFoundException e) {
+            aboutVersionTextView.setText("vUnknown");
+        }
         aboutPopup.requestWindowFeature(Window.FEATURE_NO_TITLE);
         aboutPopup.setCancelable(true);
         aboutPopup.setCanceledOnTouchOutside(true);

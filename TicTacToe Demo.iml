@@ -18,7 +18,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="TicTacToe" exported="" />
     <orderEntry type="module" module-name="util" exported="" />
-    <orderEntry type="module" module-name="android-support-v7-appcompat" exported="" />
   </component>
 </module>
 

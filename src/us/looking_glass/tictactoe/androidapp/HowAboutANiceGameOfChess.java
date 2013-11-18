@@ -26,16 +26,15 @@ public class HowAboutANiceGameOfChess implements Runnable {
     private Game g;
     final private GameView v;
     final private Dialog d;
-    final private Handler h;
+    final private GameActivity a;
     private int delay = 1000;
 
-    HowAboutANiceGameOfChess(Dialog d, GameView v, Handler h) {
+    HowAboutANiceGameOfChess(Dialog d, GameView v, GameActivity a) {
         this.d = d;
         this.v = v;
-        this.h = h;
+        this.a = a;
         g = new Game(p, p);
-        v.setBoard(g.board());
-        v.invalidate();
+        postBoardUpdate();
     }
 
     @Override
@@ -46,14 +45,24 @@ public class HowAboutANiceGameOfChess implements Runnable {
         if (g == null || g.status() != Game.PLAYING) {
             delay = Math.max(delay * 85 / 100, 30);
             g = new Game(p, p);
-            v.setBoard(g.board());
             extra = 70;
         } else if (g.turn() == 0) {
             int m = Player.prng.nextInt(9);
             g.play(m / 3, m % 3, 1);
         } else
             g.run(1);
-        v.invalidate();
-        h.postDelayed(this, delay + extra);
+        postBoardUpdate();
+        a.bgHandler.postDelayed(this, delay + extra);
+    }
+
+    private void postBoardUpdate() {
+        final int contents = g.board().getContents();
+        a.handler.post(new Runnable() {
+            @Override
+            public void run() {
+                v.setContents(contents);
+                v.invalidate();
+            }
+        });
     }
 }

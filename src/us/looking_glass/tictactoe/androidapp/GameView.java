@@ -35,7 +35,7 @@ public class GameView extends View {
     float strokeWidth;
     float halfStroke;
     float[] boxEdge = new float[6];
-    private Board board = null;
+    private int board = 0;
     private BoardTouchListener boardTouchListener;
     final static boolean debug = false;
     private final static String TAG = "TicTacToe:GameView";
@@ -82,9 +82,15 @@ public class GameView extends View {
         }
         lockedWidth += hPadding;
         lockedHeight += vPadding;
-        Logd("onMeasure: set dimensions %dx%d", lockedWidth, lockedHeight);
-        super.onMeasure(MeasureSpec.makeMeasureSpec(lockedWidth, MeasureSpec.EXACTLY),
-                MeasureSpec.makeMeasureSpec(lockedHeight, MeasureSpec.EXACTLY));
+        int widthSize = resolveSizeAndState(lockedWidth, widthSpec, 0);
+        int heightSize = resolveSizeAndState(lockedHeight, heightSpec, 0);
+        setMeasuredDimension(widthSize, heightSize);
+        Logv("layed out size: %dx%d", getWidth(), getHeight());
+        Logv("measured size: %dx%d [%d]", getMeasuredWidth(), getMeasuredHeight(), getMeasuredState());
+        if (getMeasuredHeight() > lockedHeight || getMeasuredWidth() > lockedWidth)
+            requestLayout();
+//        super.onMeasure(MeasureSpec.makeMeasureSpec(lockedWidth, MeasureSpec.EXACTLY),
+//                MeasureSpec.makeMeasureSpec(lockedHeight, MeasureSpec.EXACTLY));
         width = lockedWidth;
         strokeWidth = width / 30;
         halfStroke = strokeWidth / 2;
@@ -108,14 +114,13 @@ public class GameView extends View {
         canvas.drawLine(width - barOffset, halfStroke, width - barOffset, width - halfStroke, bars);
         canvas.drawLine(halfStroke, barOffset, width - halfStroke, barOffset, bars);
         canvas.drawLine(halfStroke, width - barOffset, width - halfStroke, width - barOffset, bars);
-        if (getBoard() == null) return;
         Paint p1 = new Paint(Paint.ANTI_ALIAS_FLAG);
         p1.setColor(Color.RED);
         Paint p2 = new Paint(Paint.ANTI_ALIAS_FLAG);
         p2.setColor(Color.BLUE);
         for (int x = 0; x < 3; x++) {
             for (int y = 0; y < 3; y++) {
-                int player = getBoard().get(x, y);
+                int player = Board.get(board, x, y);
                 if (player == 0)
                     continue;
                 canvas.drawRoundRect(new RectF(boxEdge[x], boxEdge[y], boxEdge[3+x], boxEdge[3+y]), halfStroke, halfStroke, player == 1 ? p1 : p2);
@@ -140,7 +145,7 @@ public class GameView extends View {
                     if (y >= boxEdge[i] && y <= boxEdge[i+3])
                         y_b = i;
                 }
-                if (x_b != -1 && y_b != -1 && board.get(x_b, y_b) == 0)
+                if (x_b != -1 && y_b != -1 && Board.get(board, x_b, y_b) == 0)
                     boardTouchListener.onClick(this, x_b, y_b);
                 else
                     boardTouchListener.onClick(this, x, y);
@@ -150,12 +155,12 @@ public class GameView extends View {
         return false;
     }
 
-    public Board getBoard() {
+    public int getContents() {
         return board;
     }
 
-    public void setBoard(Board board) {
-        this.board = board;
+    public void setContents(int contents) {
+        this.board = contents;
     }
 
     public BoardTouchListener getBoardTouchListener() {

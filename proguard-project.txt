@@ -18,7 +18,8 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
--dontwarn java.awt.geom.AffineTransform -dontobfuscate
+-dontwarn java.awt.geom.AffineTransform
+-keepnames class us.looking_glass.tictactoe.androidapp.HowAboutANiceGameOfChess 
 -keepnames class * implements java.io.Serializable
 
 -keepclassmembers class * implements java.io.Serializable {

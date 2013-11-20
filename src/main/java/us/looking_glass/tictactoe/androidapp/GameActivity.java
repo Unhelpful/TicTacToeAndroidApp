@@ -17,6 +17,7 @@
 package us.looking_glass.tictactoe.androidapp;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ContentValues;
 import android.content.pm.PackageManager;
@@ -48,7 +49,6 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
     private LinearLayout topLayout;
     private GameView gameView;
     private TextView tallyView;
-    private SimpleCursorAdapter playerSelectAdapter = null;
 
     private Spinner[] playerSelect = new Spinner[2];
     private static final String[] spinnerQueryCols = new String[]{AppDB.KEY_ID, AppDB.KEY_NAME};
@@ -185,7 +185,6 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
         TextView aboutTextView = (TextView) aboutWindowView.findViewById(R.id.aboutTextView);
         final GameView aboutGameView = (GameView) aboutWindowView.findViewById(R.id.aboutIcon);
         aboutGameView.setContents(0x10a01);
-        aboutGameView.invalidate();
         aboutTextView.setText(aboutText);
         aboutTextView.setMovementMethod(LinkMovementMethod.getInstance());
         TextView aboutVersionTextView = (TextView) aboutWindowView.findViewById(R.id.aboutVersion);
@@ -196,18 +195,19 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
                 aboutVersionTextView.setText("vUnknown");
             }
         aboutVersionTextView.setText(aboutVersionText);
-        aboutTextView.invalidate();
         aboutPopup.requestWindowFeature(Window.FEATURE_NO_TITLE);
         aboutPopup.setCancelable(true);
         aboutPopup.setCanceledOnTouchOutside(true);
         aboutPopup.setContentView(aboutWindowView);
         aboutGameView.setBoardTouchListener(new GameView.BoardTouchListener() {
             int touchCount = 0;
+
             private void doTouch() {
                 if (++touchCount < 5) return;
                 aboutGameView.setBoardTouchListener(null);
                 bgHandler.post(new HowAboutANiceGameOfChess(aboutPopup, aboutGameView, GameActivity.this));
             }
+
             @Override
             public void onClick(GameView source, int x, int y) {
                 doTouch();
@@ -219,6 +219,7 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
             }
         });
         aboutPopup.show();
+        aboutPopup.getWindow().setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
     }
 
     class GameBGThread extends HandlerThread {
@@ -301,6 +302,7 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
                         int[] seed = new int[32];
                         for (int i = 0; i < 32; i++)
                             seed[i] = Player.prng.next(32);
+                        app.putState("rngSeed", seed);
                         break;
                 }
             }
@@ -340,13 +342,14 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
             long[] storedTally = null;
             lastResult = -2;
             if (result.getCount() == 1 && result.moveToFirst()) {
-                try {
+                 try {
                     storedGame = (Game) app.gameSerializer.fromBytes(result.getBlob(result.getColumnIndexOrThrow(AppDB.KEY_GAME)));
                     storedTally = (long[]) app.serializer.fromBytes(result.getBlob(result.getColumnIndexOrThrow(AppDB.KEY_TALLY)));
                     lastResult = (byte) result.getInt(result.getColumnIndexOrThrow(AppDB.KEY_RESULT));
                 } catch (ClassCastException e) {
-
+                    Log.e(TAG, "Error restoring game", e);
                 } catch (IllegalStateException e) {
+                    Log.e(TAG, "Error restoring game", e);
                 }
             }
             Logd("restoreGame: %s %s", storedGame, storedTally == null ? "null" : Arrays.toString(storedTally));
@@ -423,7 +426,7 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
             super.onLooperPrepared();
             bgHandler = bgThread.new GameHandler(bgThread.getLooper());
             Cursor playerSelectCursor = app.db.query(true, AppDB.BRAINS_TABLE_NAME, spinnerQueryCols, null, null, null, null, AppDB.KEY_ID, null);
-            playerSelectAdapter = new SimpleCursorAdapter(GameActivity.this, android.R.layout.simple_spinner_item, playerSelectCursor, spinnerAdapterCols, spinnerAdapterRowViews, 0);
+            SimpleCursorAdapter playerSelectAdapter = new SimpleCursorAdapter(GameActivity.this, android.R.layout.simple_spinner_item, playerSelectCursor, spinnerAdapterCols, spinnerAdapterRowViews, 0);
             playerSelectAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
             tally = app.getObject("tally");
@@ -458,7 +461,7 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
 
                     @Override
                     public void run() {
-                        SecureRandom r = null;
+                        SecureRandom r;
                         try {
                             r = SecureRandom.getInstance("SHA1RNG");
                         } catch (NoSuchAlgorithmException e) {
@@ -530,7 +533,7 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
 
     }
 
-    private static final void Logd(String text, Object... args) {
+    private static void Logd(String text, Object... args) {
         if (debug) {
             if (args != null && args.length > 0)
                 text = String.format(text, args);
@@ -538,7 +541,7 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
         }
     }
 
-    private static final void Logv(String text, Object... args) {
+    private static void Logv(String text, Object... args) {
         if (debug) {
             if (args != null && args.length > 0)
                 text = String.format(text, args);

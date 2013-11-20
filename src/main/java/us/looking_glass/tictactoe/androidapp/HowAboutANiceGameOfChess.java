@@ -43,14 +43,14 @@ public class HowAboutANiceGameOfChess implements Runnable {
         if (!d.isShowing())
             return;
         if (g == null || g.status() != Game.PLAYING) {
-            delay = Math.max(delay * 85 / 100, 30);
+            delay = Math.max(delay * 85 / 100, 40);
             g = new Game(p, p);
-            extra = 70;
         } else if (g.turn() == 0) {
             int m = Player.prng.nextInt(9);
             g.play(m / 3, m % 3, 1);
         } else
             g.run(1);
+        if (g.status() != Game.PLAYING) extra = 150;
         postBoardUpdate();
         a.bgHandler.postDelayed(this, delay + extra);
     }

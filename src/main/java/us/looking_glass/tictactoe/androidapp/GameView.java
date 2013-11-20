@@ -89,8 +89,6 @@ public class GameView extends View {
         Logv("measured size: %dx%d [%d]", getMeasuredWidth(), getMeasuredHeight(), getMeasuredState());
         if (getMeasuredHeight() > lockedHeight || getMeasuredWidth() > lockedWidth)
             requestLayout();
-//        super.onMeasure(MeasureSpec.makeMeasureSpec(lockedWidth, MeasureSpec.EXACTLY),
-//                MeasureSpec.makeMeasureSpec(lockedHeight, MeasureSpec.EXACTLY));
         width = lockedWidth;
         strokeWidth = width / 30;
         halfStroke = strokeWidth / 2;

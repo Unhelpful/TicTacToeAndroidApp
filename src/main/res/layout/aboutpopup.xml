@@ -15,14 +15,15 @@
             android:paddingLeft="2dip"
             android:paddingRight="2dip"
             android:fillViewport="false"
-            android:layout_gravity="center_vertical">
+            android:layout_gravity="center">
 
         <LinearLayout
                 android:orientation="vertical"
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
                 android:paddingLeft="8dip"
-                android:paddingRight="8dip">
+                android:paddingRight="8dip"
+                android:gravity="center_vertical|center_horizontal">
 
             <LinearLayout
                     android:orientation="horizontal"
@@ -80,7 +81,8 @@
                             android:id="@+id/aboutCopyright"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/copyright_text"/>
+                            android:text="@string/copyright_text"
+                            android:singleLine="true"/>
 
                 </LinearLayout>
 

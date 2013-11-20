@@ -60,7 +60,7 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
     volatile MessageHandler handler = null;
     CyclicBarrier saveBarrier = new CyclicBarrier(2);
     private CharSequence aboutText;
-    private CharSequence aboutVersionText = null;
+    private String aboutVersionText = null;
 
     /**
      * Called when the activity is first created.
@@ -81,6 +81,12 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
         bgThread.start();
         String aboutTextString = getString(R.string.about_text);
         aboutText = Html.fromHtml(aboutTextString);
+        try {
+            aboutVersionText = "v" + getPackageManager().getPackageInfo(this.getPackageName(), 0).versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+            Log.e(TAG, "Failed to retrieve package version", e);
+            aboutVersionText = "vUnknown";
+        }
         Logd("GameActivity onCreate");
     }
 
@@ -188,12 +194,6 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
         aboutTextView.setText(aboutText);
         aboutTextView.setMovementMethod(LinkMovementMethod.getInstance());
         TextView aboutVersionTextView = (TextView) aboutWindowView.findViewById(R.id.aboutVersion);
-        if (aboutVersionText == null)
-            try {
-                aboutVersionTextView.setText("v" + getPackageManager().getPackageInfo(this.getPackageName(), 0).versionName);
-            } catch (PackageManager.NameNotFoundException e) {
-                aboutVersionTextView.setText("vUnknown");
-            }
         aboutVersionTextView.setText(aboutVersionText);
         aboutPopup.requestWindowFeature(Window.FEATURE_NO_TITLE);
         aboutPopup.setCancelable(true);

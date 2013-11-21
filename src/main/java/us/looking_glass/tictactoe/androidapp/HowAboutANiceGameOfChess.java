@@ -21,7 +21,8 @@ import us.looking_glass.tictactoe.Player;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-public class HowAboutANiceGameOfChess implements Runnable {
+public class HowAboutANiceGameOfChess implements Runnable, GameView.BoardTouchListener {
+    int touchCount = 0;
     private Player p = new OptimalPlayer();
     private Game g;
     final private GameView v;
@@ -29,12 +30,11 @@ public class HowAboutANiceGameOfChess implements Runnable {
     final private GameActivity a;
     private int delay = 1000;
 
-    HowAboutANiceGameOfChess(Dialog d, GameView v, GameActivity a) {
+    HowAboutANiceGameOfChess(Dialog d, GameActivity a) {
         this.d = d;
-        this.v = v;
+        this.v = (GameView) d.getWindow().findViewById(R.id.aboutIcon);
         this.a = a;
-        g = new Game(p, p);
-        postBoardUpdate();
+        v.setBoardTouchListener(this);
     }
 
     @Override
@@ -65,4 +65,29 @@ public class HowAboutANiceGameOfChess implements Runnable {
             }
         });
     }
+
+    private void doTouch() {
+        switch(++touchCount) {
+            default:
+                return;
+            case 5:
+                break;
+        }
+        v.setBoardTouchListener(null);
+        g = new Game(p, p);
+        postBoardUpdate();
+        postBoardUpdate();
+        a.bgHandler.post(this);
+    }
+
+    @Override
+    public void onClick(GameView source, int x, int y) {
+        doTouch();
+    }
+
+    @Override
+    public void onClick(GameView source, float x, float y) {
+        doTouch();
+    }
+
 }

@@ -17,6 +17,7 @@
 package us.looking_glass.tictactoe.androidapp;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -29,7 +30,6 @@ import us.looking_glass.tictactoe.Board;
 
 
 public class GameView extends View {
-    Context context;
     int width;
     float barOffset;
     float strokeWidth;
@@ -37,22 +37,34 @@ public class GameView extends View {
     float[] boxEdge = new float[6];
     private int board = 0;
     private BoardTouchListener boardTouchListener;
-    final static boolean debug = false;
+    final static boolean debug = true;
     private final static String TAG = "TicTacToe:GameView";
 
     public GameView(Context context) {
         super(context);
-        this.context = context;
     }
 
     public GameView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        this.context = context;
+        init(attrs);
     }
 
     public GameView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        this.context = context;
+        init(attrs);
+    }
+
+    private void init(AttributeSet attrs){
+        Logv("init(%s)", attrs);
+        if (attrs == null)
+            return;
+        try {
+            TypedArray a  = getContext().obtainStyledAttributes(attrs, R.styleable.GameView);
+            board = a.getInt(R.styleable.GameView_contents, 0);
+            Logv("contents: %s", a.getString(R.styleable.GameView_contents));
+        } catch (NullPointerException e) {
+        }
+        Logv("contents: %d", board);
     }
 
     @Override

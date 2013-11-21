@@ -17,7 +17,6 @@
 package us.looking_glass.tictactoe.androidapp;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ContentValues;
 import android.content.pm.PackageManager;
@@ -83,7 +82,7 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
         aboutText = Html.fromHtml(aboutTextString);
         try {
             aboutVersionText = "v" + getPackageManager().getPackageInfo(this.getPackageName(), 0).versionName;
-        } catch (PackageManager.NameNotFoundException e) {
+         } catch (Exception e) {
             Log.e(TAG, "Failed to retrieve package version", e);
             aboutVersionText = "vUnknown";
         }
@@ -189,8 +188,6 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
         final Dialog aboutPopup = new Dialog(this);
         View aboutWindowView = getLayoutInflater().inflate(R.layout.aboutpopup, null);
         TextView aboutTextView = (TextView) aboutWindowView.findViewById(R.id.aboutTextView);
-        final GameView aboutGameView = (GameView) aboutWindowView.findViewById(R.id.aboutIcon);
-        aboutGameView.setContents(0x10a01);
         aboutTextView.setText(aboutText);
         aboutTextView.setMovementMethod(LinkMovementMethod.getInstance());
         TextView aboutVersionTextView = (TextView) aboutWindowView.findViewById(R.id.aboutVersion);
@@ -199,25 +196,7 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
         aboutPopup.setCancelable(true);
         aboutPopup.setCanceledOnTouchOutside(true);
         aboutPopup.setContentView(aboutWindowView);
-        aboutGameView.setBoardTouchListener(new GameView.BoardTouchListener() {
-            int touchCount = 0;
-
-            private void doTouch() {
-                if (++touchCount < 5) return;
-                aboutGameView.setBoardTouchListener(null);
-                bgHandler.post(new HowAboutANiceGameOfChess(aboutPopup, aboutGameView, GameActivity.this));
-            }
-
-            @Override
-            public void onClick(GameView source, int x, int y) {
-                doTouch();
-            }
-
-            @Override
-            public void onClick(GameView source, float x, float y) {
-                doTouch();
-            }
-        });
+        new HowAboutANiceGameOfChess(aboutPopup, this);
         aboutPopup.show();
         aboutPopup.getWindow().setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
     }

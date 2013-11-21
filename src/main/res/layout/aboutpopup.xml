@@ -4,6 +4,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:paddingTop="8dip"
         android:paddingBottom="8dip"
         android:gravity="center_vertical|center_horizontal">
@@ -32,13 +33,13 @@
                     android:layout_height="wrap_content"
                     android:paddingBottom="2dip">
 
-                <view
+                <us.looking_glass.tictactoe.androidapp.GameView
                         android:layout_width="fill_parent"
                         android:layout_height="wrap_content"
-                        class="us.looking_glass.tictactoe.androidapp.GameView"
                         android:id="@+id/aboutIcon"
                         android:layout_weight="2"
-                        android:focusableInTouchMode="false"/>
+                        android:focusableInTouchMode="false"
+                        app:contents="68097"/>
 
                 <LinearLayout
                         android:orientation="vertical"

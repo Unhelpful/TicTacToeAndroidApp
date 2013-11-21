@@ -55,6 +55,7 @@ android {
             runProguard true
             proguardFile getDefaultProguardFile('proguard-android-optimize.txt')
             proguardFile 'proguard-project.txt'
+            signingConfig android.signingConfigs.debug
 	}
     }
     task askForPasswords << {

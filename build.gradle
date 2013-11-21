@@ -34,7 +34,7 @@ android {
             signingConfigs {
                 release {
                     // We can leave these in environment variables
-                    storeFile file('/home/chshrcat/.keystore')
+                    storeFile file(System.getenv()['HOME'] + '/.keystore')
                     keyAlias 'unhelpful'
 
                     // These two lines make gradle believe that the signingConfigs
@@ -51,6 +51,11 @@ android {
             proguardFile 'proguard-project.txt'
             signingConfig signingConfigs.release
         }
+	testRelease {
+            runProguard true
+            proguardFile getDefaultProguardFile('proguard-android-optimize.txt')
+            proguardFile 'proguard-project.txt'
+	}
     }
     task askForPasswords << {
         // Must create String because System.readPassword() returns char[]

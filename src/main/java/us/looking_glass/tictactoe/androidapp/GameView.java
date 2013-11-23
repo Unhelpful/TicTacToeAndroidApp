@@ -21,9 +21,11 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PaintFlagsDrawFilter;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 import us.looking_glass.tictactoe.Board;
@@ -32,39 +34,36 @@ import us.looking_glass.tictactoe.Board;
 public class GameView extends View {
     int width;
     float barOffset;
-    float strokeWidth;
-    float halfStroke;
-    float[] boxEdge = new float[6];
+    final float strokeWidth;
+    private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    float[] boxEdges = new float[4];
     private int board = 0;
     private BoardTouchListener boardTouchListener;
     final static boolean debug = true;
     private final static String TAG = "TicTacToe:GameView";
+    private final static int[] colors = new int[] { 0xff700000, 0xff000070, 0xffff0000, 0xff0000ff };
 
     public GameView(Context context) {
-        super(context);
+        this(context, null, 0);
     }
 
     public GameView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        init(attrs);
+        this(context, attrs, 0);
     }
 
     public GameView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        init(attrs);
-    }
-
-    private void init(AttributeSet attrs){
-        Logv("init(%s)", attrs);
-        if (attrs == null)
-            return;
-        try {
-            TypedArray a  = getContext().obtainStyledAttributes(attrs, R.styleable.GameView);
-            board = a.getInt(R.styleable.GameView_contents, 0);
-            Logv("contents: %s", a.getString(R.styleable.GameView_contents));
-        } catch (NullPointerException e) {
-        }
-        Logv("contents: %d", board);
+        strokeWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, getContext().getResources().getDisplayMetrics());
+        Logv("strokeWidth: %f", strokeWidth);
+        if (attrs != null)
+            try {
+                TypedArray a  = getContext().obtainStyledAttributes(attrs, R.styleable.GameView);
+                board = a.getInt(R.styleable.GameView_contents, 0);
+                a.recycle();
+                Logv("contents: %d", board);
+            } catch (NullPointerException e) {
+            }
+        paint.setStrokeWidth(strokeWidth);
     }
 
     @Override
@@ -102,41 +101,29 @@ public class GameView extends View {
         if (getMeasuredHeight() > lockedHeight || getMeasuredWidth() > lockedWidth)
             requestLayout();
         width = lockedWidth;
-        strokeWidth = width / 30;
-        halfStroke = strokeWidth / 2;
         barOffset = (width - strokeWidth * 2) / 3 + strokeWidth / 2;
-        boxEdge[0] = halfStroke;
-        boxEdge[1] = barOffset + strokeWidth;
-        boxEdge[2] = width - barOffset + strokeWidth;
-        boxEdge[3] = barOffset - strokeWidth;
-        boxEdge[4] = width - barOffset - strokeWidth;
-        boxEdge[5] = width - halfStroke;
-
+        boxEdges[1] = barOffset;
+        boxEdges[2] = width - barOffset;
+        boxEdges[3] = width;
     }
 
     @Override
     protected  void onDraw(Canvas canvas) {
-        Paint bars = new Paint(Paint.ANTI_ALIAS_FLAG);
-        bars.setColor(Color.WHITE);
-        bars.setStrokeWidth(strokeWidth);
-        bars.setStrokeCap(Paint.Cap.ROUND);
-        canvas.drawLine(barOffset, halfStroke, barOffset, width - halfStroke, bars);
-        canvas.drawLine(width - barOffset, halfStroke, width - barOffset, width - halfStroke, bars);
-        canvas.drawLine(halfStroke, barOffset, width - halfStroke, barOffset, bars);
-        canvas.drawLine(halfStroke, width - barOffset, width - halfStroke, width - barOffset, bars);
-        Paint p1 = new Paint(Paint.ANTI_ALIAS_FLAG);
-        p1.setColor(Color.RED);
-        Paint p2 = new Paint(Paint.ANTI_ALIAS_FLAG);
-        p2.setColor(Color.BLUE);
         for (int x = 0; x < 3; x++) {
             for (int y = 0; y < 3; y++) {
                 int player = Board.get(board, x, y);
                 if (player == 0)
                     continue;
-                canvas.drawRoundRect(new RectF(boxEdge[x], boxEdge[y], boxEdge[3+x], boxEdge[3+y]), halfStroke, halfStroke, player == 1 ? p1 : p2);
+                player += (!Board.isMarked(board) || Board.getMark(board, x, y)) ? 1 : -1;
+                paint.setColor(colors[player]);
+                canvas.drawRect(boxEdges[x], boxEdges[y], boxEdges[x + 1], boxEdges[y + 1], paint);
             }
         }
-
+        paint.setColor(0xffffffff);
+        canvas.drawLine(barOffset, 0, barOffset, width, paint);
+        canvas.drawLine(width - barOffset, 0, width - barOffset, width, paint);
+        canvas.drawLine(0, barOffset, width, barOffset, paint);
+        canvas.drawLine(0, width - barOffset, width, width - barOffset, paint);
     }
 
     @Override
@@ -149,13 +136,10 @@ public class GameView extends View {
                 float x = event.getX();
                 float y = event.getY();
                 int x_b = -1, y_b = -1;
-                for (int i = 0; i < 3; i++) {
-                    if (x >= boxEdge[i] && x <= boxEdge[i+3])
-                        x_b = i;
-                    if (y >= boxEdge[i] && y <= boxEdge[i+3])
-                        y_b = i;
-                }
-                if (x_b != -1 && y_b != -1 && Board.get(board, x_b, y_b) == 0)
+                x_b = x < barOffset ? 0 : (x < width - barOffset ? 1 : 2);
+                y_b = y < barOffset ? 0 : (y < width - barOffset ? 1 : 2);
+                Logv("x: %f y: %f x_b: %d y_b: %d width: %d contents: %d", x, y, x_b, y_b, width, Board.get(board, x_b, y_b));
+                if (Board.get(board, x_b, y_b) == 0)
                     boardTouchListener.onClick(this, x_b, y_b);
                 else
                     boardTouchListener.onClick(this, x, y);

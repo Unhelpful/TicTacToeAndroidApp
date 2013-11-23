@@ -28,7 +28,7 @@ import us.looking_glass.util.Serializer;
 
 public class AppDB extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "tictactoe.db";
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 5;
     static final String BRAINS_TABLE_NAME = "brains";
     static final String KEY_ID = "_id";
     static final String KEY_NAME = "name";
@@ -157,6 +157,20 @@ public class AppDB extends SQLiteOpenHelper {
                 db.beginTransaction();
                 try {
                     addOptimalPlayer(db);
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
+                break;
+            case 4:
+                byte[] lmsRankState = TicTacToeApp.serializer().toBytes(new LMSRankPlayer());
+                db.beginTransaction();
+                try {
+                    ContentValues initInsert = new ContentValues();
+                    initInsert.put(KEY_NAME, "LMS Rank");
+                    initInsert.put(KEY_STATE, lmsRankState);
+                    db.insertWithOnConflict(BRAINS_TABLE_NAME, null, initInsert, SQLiteDatabase.CONFLICT_REPLACE);
+                    db.execSQL("delete from " + GAME_TABLE_NAME + ";");
                     db.setTransactionSuccessful();
                 } finally {
                     db.endTransaction();

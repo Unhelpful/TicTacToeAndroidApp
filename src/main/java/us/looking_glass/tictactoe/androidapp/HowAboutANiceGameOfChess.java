@@ -56,7 +56,7 @@ public class HowAboutANiceGameOfChess implements Runnable, GameView.BoardTouchLi
     }
 
     private void postBoardUpdate() {
-        final int contents = g.board().getContents();
+        final int contents = g.board();
         a.handler.post(new Runnable() {
             @Override
             public void run() {

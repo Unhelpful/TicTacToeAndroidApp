@@ -22,6 +22,7 @@ import android.content.ContentValues;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.database.Cursor;
+import android.graphics.drawable.StateListDrawable;
 import android.os.*;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
@@ -50,6 +51,8 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
     private TextView tallyView;
 
     private Spinner[] playerSelect = new Spinner[2];
+    private View[] playerColorBars = new View[2];
+    private int[] colors = new int[] { 0xff700000, 0xff000070, 0xffff0000, 0xff0000ff };
     private static final String[] spinnerQueryCols = new String[]{AppDB.KEY_ID, AppDB.KEY_NAME};
     private static final String[] spinnerAdapterCols = new String[]{AppDB.KEY_NAME};
     private static final int[] spinnerAdapterRowViews = new int[]{android.R.id.text1};
@@ -75,6 +78,8 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
         handler = new UIHandler();
         playerSelect[0] = (Spinner) findViewById(R.id.P1Select);
         playerSelect[1] = (Spinner) findViewById(R.id.P2Select);
+        playerColorBars[0] = findViewById(R.id.P1color);
+        playerColorBars[1] = findViewById(R.id.P2color);
         setOrientation(getResources().getConfiguration().orientation);
         bgThread = new GameBGThread("TicTacToeBG");
         bgThread.start();
@@ -222,7 +227,6 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
                         int x = msg.arg1;
                         int y = msg.arg2;
                         game.play(x, y, game.getCurrentPlayer());
-                        int nextState = WAIT_TAP;
                         if (game.status() == Game.PLAYING && game.getPlayer() != null)
                             game.run(1);
                         if (game.status() != Game.PLAYING) {
@@ -230,10 +234,9 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
                             lastResult = game.status();
                             tally[lastResult == Game.P1_WIN ? 0 : lastResult == Game.P2_WIN ? 1 : 2]++;
                             tallyUpdate = formatResults();
-                        } else if (game.getPlayer() == null)
-                            nextState = WAIT_MOVE;
+                        }
                         sendUpdate(tallyUpdate);
-                        handler.sendMessage(UIHandler.WAIT_INPUT, nextState, 0, null);
+                        sendSetInput();
                         break;
                     case PLAY_TAP:
                         Logv("PLAY_TAP");
@@ -325,9 +328,7 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
                     storedGame = (Game) app.gameSerializer.fromBytes(result.getBlob(result.getColumnIndexOrThrow(AppDB.KEY_GAME)));
                     storedTally = (long[]) app.serializer.fromBytes(result.getBlob(result.getColumnIndexOrThrow(AppDB.KEY_TALLY)));
                     lastResult = (byte) result.getInt(result.getColumnIndexOrThrow(AppDB.KEY_RESULT));
-                } catch (ClassCastException e) {
-                    Log.e(TAG, "Error restoring game", e);
-                } catch (IllegalStateException e) {
+                } catch (Exception e) {
                     Log.e(TAG, "Error restoring game", e);
                 }
             }
@@ -384,14 +385,21 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
         }
 
         private void sendUpdate(String tallyUpdate) {
-            handler.sendMessage(UIHandler.UPDATE_DISPLAY, game.board().getContents(), 0, tallyUpdate);
+            handler.sendMessage(UIHandler.UPDATE_DISPLAY, game.board(), 0, tallyUpdate);
         }
 
         private void sendSetInput() {
             int nextState = WAIT_TAP;
-            if (game.status() == Game.PLAYING && game.getPlayer() == null)
-                nextState = WAIT_MOVE;
-            handler.sendMessage(UIHandler.WAIT_INPUT, nextState, 0, null);
+            int waitingPlayer = 0;
+            if (game.status() == Game.PLAYING) {
+                if (game.getPlayer() == null) {
+                    nextState = WAIT_MOVE;
+                    waitingPlayer = game.getCurrentPlayer();
+                }
+            } else
+                waitingPlayer = 3;
+            Logv("sendSetInput: sent %d %d", nextState,waitingPlayer);
+            handler.sendMessage(UIHandler.WAIT_INPUT, nextState, waitingPlayer, null);
         }
 
 
@@ -492,7 +500,8 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
                     break;
                 case WAIT_INPUT:
                     Logv("WAIT_INPUT: %d", msg.arg1);
-                    awaitingInput = msg.arg1;
+                    awaitingInput = msg.arg1 & 0xffff;
+                    updateWaiting(msg.arg2);
                     break;
                 case INIT_COMPLETE:
                     Logv("INIT_COMPLETE: %d %d %s", msg.arg1, msg.arg2, msg.obj);
@@ -510,6 +519,16 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
             super.handleMessage(msg);    //To change body of overridden methods use File | Settings | File Templates.
         }
 
+    }
+
+    void updateWaiting (int player) {
+        for (int i = 0; i < 2; i++) {
+            View target = playerColorBars[i];
+            int color = colors[i + (player == 0 || player == i + 1 ? 2 : 0)];
+            Logv("Updatewaiting: %08x->%d", color, i);
+            target.setBackgroundColor(color);
+            target.invalidate();
+        }
     }
 
     private static void Logd(String text, Object... args) {

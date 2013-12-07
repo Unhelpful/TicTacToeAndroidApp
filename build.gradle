@@ -16,6 +16,7 @@ dependencies {
     }
     compile project(':util')
     compile project(':TicTacToe_lib')
+    compile project(':Spotlight:library')
 }
 
 android {
@@ -47,16 +48,18 @@ android {
     buildTypes {
         release {
             runProguard true
-            proguardFile getDefaultProguardFile('proguard-android-optimize.txt')
-            proguardFile 'proguard-project.txt'
             signingConfig signingConfigs.release
         }
-	testRelease {
-            runProguard true
+    }
+    productFlavors {
+        defaultFlavor {
+            proguardFile getDefaultProguardFile('proguard-android.txt')
+            proguardFile 'proguard-keepnames.txt'
+        }
+        optimized {
             proguardFile getDefaultProguardFile('proguard-android-optimize.txt')
             proguardFile 'proguard-project.txt'
-            signingConfig android.signingConfigs.debug
-	}
+        }
     }
     task askForPasswords << {
         // Must create String because System.readPassword() returns char[]
@@ -68,8 +71,9 @@ android {
         android.signingConfigs.release.keyPassword = keyPw
     }
 
+    def taskPattern = ~"(^|:)package.*Release\$"
     tasks.whenTaskAdded { theTask -> 
-        if (theTask.name.equals("packageRelease")) {
+        if (taskPattern.matcher(theTask.name)) {
             theTask.dependsOn "askForPasswords"
         }
     }

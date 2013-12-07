@@ -19,16 +19,15 @@ package us.looking_glass.tictactoe.androidapp;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.PaintFlagsDrawFilter;
-import android.graphics.RectF;
+import android.graphics.PointF;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 import us.looking_glass.tictactoe.Board;
+import us.looking_glass.tictactoe.Point;
 
 
 public class GameView extends View {
@@ -38,8 +37,7 @@ public class GameView extends View {
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     float[] boxEdges = new float[4];
     private int board = 0;
-    private BoardTouchListener boardTouchListener;
-    final static boolean debug = true;
+    final static boolean debug = false;
     private final static String TAG = "TicTacToe:GameView";
     private final static int[] colors = new int[] { 0xff700000, 0xff000070, 0xffff0000, 0xff0000ff };
 
@@ -126,27 +124,24 @@ public class GameView extends View {
         canvas.drawLine(0, width - barOffset, width, width - barOffset, paint);
     }
 
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        int action = event.getAction();
-        if (action == MotionEvent.ACTION_DOWN)
-            return true;
-        if (action == MotionEvent.ACTION_UP) {
-            if (boardTouchListener != null) {
-                float x = event.getX();
-                float y = event.getY();
-                int x_b = -1, y_b = -1;
-                x_b = x < barOffset ? 0 : (x < width - barOffset ? 1 : 2);
-                y_b = y < barOffset ? 0 : (y < width - barOffset ? 1 : 2);
-                Logv("x: %f y: %f x_b: %d y_b: %d width: %d contents: %d", x, y, x_b, y_b, width, Board.get(board, x_b, y_b));
-                if (Board.get(board, x_b, y_b) == 0)
-                    boardTouchListener.onClick(this, x_b, y_b);
-                else
-                    boardTouchListener.onClick(this, x, y);
-            }
-            return true;
-        }
-        return false;
+    public int resolveBoardCoordinates(float x, float y) {
+        int x_b = x < barOffset ? 0 : (x < width - barOffset ? 1 : 2);
+        int y_b = y < barOffset ? 0 : (y < width - barOffset ? 1 : 2);
+        Logv("resolveBoardCoordinates: (%f,%f)->(%d,%d)", x, y, x_b, y_b);
+        return Point.point(x_b, y_b);
+    }
+
+    public float centerOffset(int coord) {
+        float offset = boxEdges[coord] + boxEdges[coord  + 1];
+        if (coord == 0)
+            offset -= strokeWidth / 2;
+        else if (coord == 2)
+            offset += strokeWidth / 2;
+        return offset / 2;
+    }
+
+    public PointF getSquareCenter(int x, int y) {
+        return  new PointF(centerOffset(x), centerOffset(y));
     }
 
     public int getContents() {
@@ -155,19 +150,6 @@ public class GameView extends View {
 
     public void setContents(int contents) {
         this.board = contents;
-    }
-
-    public BoardTouchListener getBoardTouchListener() {
-        return boardTouchListener;
-    }
-
-    public void setBoardTouchListener(BoardTouchListener boardTouchListener) {
-        this.boardTouchListener = boardTouchListener;
-    }
-
-    static interface BoardTouchListener {
-        void onClick(GameView source, int x, int y);
-        void onClick(GameView source, float x, float y);
     }
 
     private static final void Logd(String text, Object... args) {

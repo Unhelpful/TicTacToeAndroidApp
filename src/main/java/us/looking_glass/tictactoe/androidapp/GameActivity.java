@@ -19,27 +19,30 @@ package us.looking_glass.tictactoe.androidapp;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.ContentValues;
-import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.database.Cursor;
-import android.graphics.drawable.StateListDrawable;
 import android.os.*;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.*;
 import android.widget.*;
+
+import us.looking_glass.spotlight.Script;
+import us.looking_glass.spotlight.actor.ViewActor;
 import us.looking_glass.tictactoe.Board;
 import us.looking_glass.tictactoe.Game;
 import us.looking_glass.tictactoe.Player;
+import us.looking_glass.tictactoe.Point;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.concurrent.*;
 
-public class GameActivity extends Activity implements GameView.BoardTouchListener, AdapterView.OnItemSelectedListener {
+public class GameActivity extends Activity implements AdapterView.OnItemSelectedListener {
     private TicTacToeApp app = null;
+    private Script script = null;
 
     private final static int WAIT_IGNORE = 0;
     private final static int WAIT_MOVE = 1;
@@ -91,6 +94,38 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
             Log.e(TAG, "Failed to retrieve package version", e);
             aboutVersionText = "vUnknown";
         }
+        script = new Script(this);
+        script.getBuilder()
+            .setDefaultTransition(Script.FADE)
+            .setOneShotID(R.id.playerColorShotID)
+            .setTitleText(R.string.player_color_title)
+            .setDetailText(R.string.player_color_detail)
+            .setActor(
+                new ViewActor.Builder(this)
+                    .setView(playerColorBars[0])
+                    .build()
+            )
+            .add()
+            .setOneShotID(R.id.playerSelectShotID)
+            .setTitleText(R.string.player_select_title)
+            .setDetailText(R.string.player_select_detail)
+            .setActor(
+                new ViewActor.Builder(this)
+                    .setView(playerSelect[0])
+                    .build()
+            )
+            .add()
+            .setOneShotID(R.id.gameBoardShotID)
+            .setTitleText(R.string.game_board_title)
+            .setDetailText(R.string.game_board_detail)
+            .setActor(
+                new ViewActor.Builder(this)
+                .setView(gameView)
+                .setPlacement(ViewActor.INSIDE)
+                .build()
+            )
+            .add()
+            .end();
         Logd("GameActivity onCreate");
     }
 
@@ -133,27 +168,39 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
         }
     }
 
-    @Override
-    public void onClick(GameView source, int x, int y) {
-        Logd("Board touch: %d %d", x, y);
-        switch (awaitingInput) {
-            case WAIT_MOVE:
-                bgHandler.sendMessage(GameBGThread.GameHandler.PLAY_MOVE, x, y, null);
-                awaitingInput = WAIT_IGNORE;
-                break;
-            case WAIT_TAP:
-                bgHandler.sendEmptyMessage(GameBGThread.GameHandler.PLAY_TAP);
-                awaitingInput = WAIT_IGNORE;
-                break;
-        }
-    }
+    private class BoardGesturedHandler extends GestureDetector.SimpleOnGestureListener implements View.OnTouchListener {
+        private GestureDetector gestureDetector = new GestureDetector(GameActivity.this, this);
 
-    @Override
-    public void onClick(GameView source, float x, float y) {
-        if (awaitingInput == WAIT_TAP) {
-            bgHandler.sendEmptyMessage(GameBGThread.GameHandler.PLAY_TAP);
-            awaitingInput = WAIT_IGNORE;
+        @Override
+        public boolean onDown(MotionEvent e) {
+            return true;
         }
+
+        @Override
+        public boolean onSingleTapConfirmed(MotionEvent e) {
+            switch (awaitingInput) {
+                case WAIT_MOVE:
+                    int x, y;
+                    x = gameView.resolveBoardCoordinates(e.getX(), e.getY());
+                    y = Point.y(x);
+                    x = Point.x(x);
+                    Logv("Board touch: %d %d", x, y);
+                    bgHandler.sendMessage(GameBGThread.GameHandler.PLAY_MOVE, x, y, null);
+                    awaitingInput = WAIT_IGNORE;
+                    break;
+                case WAIT_TAP:
+                    bgHandler.sendEmptyMessage(GameBGThread.GameHandler.PLAY_TAP);
+                    awaitingInput = WAIT_IGNORE;
+                    break;
+            }
+            return false;
+        }
+
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            return gestureDetector.onTouchEvent(event);
+        }
+
 
     }
 
@@ -184,6 +231,10 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
                 Logv("open about");
                 openAboutPopup();
                 return true;
+            case R.id.action_help:
+                Logv("reshow help");
+                script.show(true);
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -202,8 +253,8 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
         aboutPopup.setCanceledOnTouchOutside(true);
         aboutPopup.setContentView(aboutWindowView);
         new HowAboutANiceGameOfChess(aboutPopup, this);
-        aboutPopup.show();
         aboutPopup.getWindow().setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        aboutPopup.show();
     }
 
     class GameBGThread extends HandlerThread {
@@ -223,19 +274,21 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
                 String tallyUpdate = null;
                 switch (msg.what) {
                     case PLAY_MOVE:
-                        Logv("PLAY_MOVE: %d, %d", msg.arg1, msg.arg2);
                         int x = msg.arg1;
                         int y = msg.arg2;
-                        game.play(x, y, game.getCurrentPlayer());
-                        if (game.status() == Game.PLAYING && game.getPlayer() != null)
-                            game.run(1);
-                        if (game.status() != Game.PLAYING) {
-                            savePlayers();
-                            lastResult = game.status();
-                            tally[lastResult == Game.P1_WIN ? 0 : lastResult == Game.P2_WIN ? 1 : 2]++;
-                            tallyUpdate = formatResults();
+                        Logv("PLAY_MOVE: %d, %d", x, y);
+                        if (Board.get(game.board(), msg.arg1, msg.arg2) == 0) {
+                            game.play(x, y, game.getCurrentPlayer());
+                            if (game.status() == Game.PLAYING && game.getPlayer() != null)
+                                game.run(1);
+                            if (game.status() != Game.PLAYING) {
+                                savePlayers();
+                                lastResult = game.status();
+                                tally[lastResult == Game.P1_WIN ? 0 : lastResult == Game.P2_WIN ? 1 : 2]++;
+                                tallyUpdate = formatResults();
+                            }
+                            sendUpdate(tallyUpdate);
                         }
-                        sendUpdate(tallyUpdate);
                         sendSetInput();
                         break;
                     case PLAY_TAP:
@@ -507,20 +560,19 @@ public class GameActivity extends Activity implements GameView.BoardTouchListene
                     Logv("INIT_COMPLETE: %d %d %s", msg.arg1, msg.arg2, msg.obj);
                     playerSelect[0].setAdapter((SpinnerAdapter) msg.obj);
                     playerSelect[1].setAdapter((SpinnerAdapter) msg.obj);
-                    gameView.setBoardTouchListener(GameActivity.this);
+                    gameView.setOnTouchListener(new BoardGesturedHandler());
                     playerSelect[0].setOnItemSelectedListener(GameActivity.this);
                     playerSelect[1].setOnItemSelectedListener(GameActivity.this);
                     playerSelect[0].setSelection(msg.arg1);
                     playerSelect[1].setSelection(msg.arg2);
+                    script.show();
                     break;
-
-
             }
             super.handleMessage(msg);    //To change body of overridden methods use File | Settings | File Templates.
         }
 
     }
-
+    
     void updateWaiting (int player) {
         for (int i = 0; i < 2; i++) {
             View target = playerColorBars[i];

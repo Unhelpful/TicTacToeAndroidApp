@@ -2,6 +2,8 @@ package us.looking_glass.tictactoe.androidapp;
 
 import android.app.Dialog;
 import android.os.Handler;
+import android.view.View;
+
 import us.looking_glass.tictactoe.Game;
 import us.looking_glass.tictactoe.OptimalPlayer;
 import us.looking_glass.tictactoe.Player;
@@ -21,7 +23,7 @@ import us.looking_glass.tictactoe.Player;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-public class HowAboutANiceGameOfChess implements Runnable, GameView.BoardTouchListener {
+public class HowAboutANiceGameOfChess implements Runnable, View.OnClickListener {
     int touchCount = 0;
     private Player p = new OptimalPlayer();
     private Game g;
@@ -34,7 +36,23 @@ public class HowAboutANiceGameOfChess implements Runnable, GameView.BoardTouchLi
         this.d = d;
         this.v = (GameView) d.getWindow().findViewById(R.id.aboutIcon);
         this.a = a;
-        v.setBoardTouchListener(this);
+        v.setOnClickListener(this);
+    }
+
+    @Override
+    public void onClick(View v) {
+        if (v != this.v)
+            return;
+        switch(++touchCount) {
+            default:
+                return;
+            case 5:
+                break;
+        }
+        g = new Game(p, p);
+        v.setOnClickListener(null);
+        postBoardUpdate();
+        a.bgHandler.post(this);
     }
 
     @Override
@@ -67,27 +85,5 @@ public class HowAboutANiceGameOfChess implements Runnable, GameView.BoardTouchLi
     }
 
     private void doTouch() {
-        switch(++touchCount) {
-            default:
-                return;
-            case 5:
-                break;
-        }
-        v.setBoardTouchListener(null);
-        g = new Game(p, p);
-        postBoardUpdate();
-        postBoardUpdate();
-        a.bgHandler.post(this);
     }
-
-    @Override
-    public void onClick(GameView source, int x, int y) {
-        doTouch();
-    }
-
-    @Override
-    public void onClick(GameView source, float x, float y) {
-        doTouch();
-    }
-
 }

@@ -1,10 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="action_about">About</string>
+    <string name="action_help">Help</string>
     <string name="app_name">TicTacToe</string>
     <string name="p1_select_label">Player 1:</string>
     <string name="p2_select_label">Player 2:</string>
-    <string name="about_text"><![CDATA[Licensed under the <a
+    <string name="player_color_title">Player Colors</string>
+    <string name="player_color_detail">Indicates the color used by each player; dimmed when waiting for other player or for the user to clear the board.</string>
+    <string name="player_select_title">Player Select</string>
+    <string name="player_select_detail">Use these controls to select players.</string>
+    <string name="game_board_title">Game Board</string>
+    <string name="game_board_detail">Tap an empty square to play. Tap anywhere to clear a finished game or to play the next turn in AI vs AI games.</string>
+    <string name="about_text"><![CDATA[
+            This program is Open Source Software. Complete source is available from the <a
+            href="https://github.com/Unhelpful/TicTacToe_Project">TicTacToe_Project</a>
+            repository on GitHub.<br/><br/>
+
+            Licensed under the <a
             href="http://www.apache.org/licenses/LICENSE-2.0">Apache License, Version
             2.0</a> (the "License"); you may not use this file except in compliance with the
             License.<br/><br/>
@@ -15,12 +27,6 @@
             See the License for the specific language governing permissions and
             limitations under the License.<br/><br/>
 
-            The source for this app is available in the <a
-            href="https://github.com/Unhelpful/Java-util">Java-util</a>, <a
-            href="https://github.com/Unhelpful/TicTacToe">TicTacToe</a>, and <a
-            href="https://github.com/Unhelpful/TicTacToe_Android">TicTacToe_Android</a>
-            repositories on GitHub.<br/><br/>
-
             The TicTacToe library uses math routines from the <a
             href="http://commons.apache.org/proper/commons-math/">Apache Commons Math
             Library</a>, licensed under the <a
@@ -29,6 +35,7 @@
             collections from the <a href="http://trove.starlight-systems.com/">GNU Trove</a>
             library, licensed under the <a
             href="http://www.gnu.org/licenses/lgpl-2.1.html">GNU Lesser General Public
-            License, version 2.1</a>.]]></string>
+            License, version 2.1</a>.
+            ]]></string>
     <string name="copyright_text">Copyright 2013 Andrew Mahone</string>
 </resources>

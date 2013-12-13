@@ -74,19 +74,19 @@ public class TicTacToeApp extends Application {
         if (idToPlayer.containsKey(id)) {
             WeakReference<Player> reference = idToPlayer.get(id);
             if (reference == null) {
-                Logd("getPlayer(%d): retrieved null from cache", id);
+                if (debug) Logd("getPlayer(%d): retrieved null from cache", id);
                 return null;
             }
             Player result = reference.get();
             if (result != null) {
-                Logd("getPlayer(%d): retrieved %s from cache", id, result);
+                if (debug) Logd("getPlayer(%d): retrieved %s from cache", id, result);
                 return result;
             }
         }
         String queryString = String.format("_id=%d", id);
         Cursor result = db.query(AppDB.BRAINS_TABLE_NAME, AppDB.ID_STATE_COLS, queryString, null, null, null, AppDB.KEY_ID, null);
         try {
-            Logd("getPlayer(%d): %d results", id, result.getCount());
+            if (debug) Logd("getPlayer(%d): %d results", id, result.getCount());
             if (result.getCount() != 1 || !result.moveToFirst())
                 return null;
             int colIndex = result.getColumnIndexOrThrow(AppDB.KEY_STATE);
@@ -98,7 +98,7 @@ public class TicTacToeApp extends Application {
                 idToPlayer.put(id, null);
                 return null;
             }
-            Logd("getPlayer(%d): retrieved %s from db", id, playerResult);
+            if (debug) Logd("getPlayer(%d): retrieved %s from db", id, playerResult);
             playerToId.put(playerResult, id);
             idToPlayer.put(id, new WeakReference<Player>(playerResult));
             return playerResult;
@@ -197,19 +197,16 @@ public class TicTacToeApp extends Application {
         putState(key, value, serializer);
     }
 
+
     private static final void Logd(String text, Object... args) {
-        if (debug) {
-            if (args != null && args.length > 0)
-                text = String.format(text, args);
-            Log.d(TAG, text);
-        }
-    }
-    private static final void Logv(String text, Object... args) {
-        if (debug) {
-            if (args != null && args.length > 0)
-                text = String.format(text, args);
-            Log.v(TAG, text);
-        }
+        if (args != null && args.length > 0)
+            text = String.format(text, args);
+        Log.d(TAG, text);
     }
 
+    private static final void Logv(String text, Object... args) {
+        if (args != null && args.length > 0)
+            text = String.format(text, args);
+        Log.v(TAG, text);
+    }
 }

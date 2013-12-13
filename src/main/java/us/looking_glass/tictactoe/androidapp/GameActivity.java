@@ -126,7 +126,7 @@ public class GameActivity extends Activity implements AdapterView.OnItemSelected
             )
             .add()
             .end();
-        Logd("GameActivity onCreate");
+        if (debug) Logd("GameActivity onCreate");
     }
 
     private void setOrientation(int orientation) {
@@ -139,7 +139,6 @@ public class GameActivity extends Activity implements AdapterView.OnItemSelected
     @Override
     public void onConfigurationChanged (Configuration newConfig)
     {
-        Logd("onConfigurationChanged: %s %d %d %d %d", newConfig, newConfig.orientation, newConfig.getLayoutDirection(), Configuration.ORIENTATION_LANDSCAPE, Configuration.ORIENTATION_PORTRAIT);
         super.onConfigurationChanged(newConfig);
         setOrientation(newConfig.orientation);
     }
@@ -147,7 +146,7 @@ public class GameActivity extends Activity implements AdapterView.OnItemSelected
     @Override
     public void onPause() {
         super.onPause();
-        Logd("onPause state save start");
+        if (debug) Logd("onPause state save start");
         long time;
         Exception failure = null;
         if (debug)
@@ -184,7 +183,7 @@ public class GameActivity extends Activity implements AdapterView.OnItemSelected
                     x = gameView.resolveBoardCoordinates(e.getX(), e.getY());
                     y = Point.y(x);
                     x = Point.x(x);
-                    Logv("Board touch: %d %d", x, y);
+                    if (debug) Logv("Board touch: %d %d", x, y);
                     bgHandler.sendMessage(GameBGThread.GameHandler.PLAY_MOVE, x, y, null);
                     awaitingInput = WAIT_IGNORE;
                     break;
@@ -206,7 +205,7 @@ public class GameActivity extends Activity implements AdapterView.OnItemSelected
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        Logd("onItemSelected");
+        if (debug) Logd("onItemSelected");
         for (int i = 0; i < 2; i++)
             if (parent == playerSelect[i])
                 bgHandler.sendMessage(GameBGThread.GameHandler.SET_PLAYER, i, (int) id, null);
@@ -214,7 +213,7 @@ public class GameActivity extends Activity implements AdapterView.OnItemSelected
 
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
-        Logd("onNothingSelected: parent %s", parent);
+        if (debug) Logd("onNothingSelected: parent %s", parent);
     }
 
     @Override
@@ -228,11 +227,11 @@ public class GameActivity extends Activity implements AdapterView.OnItemSelected
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
             case R.id.action_about:
-                Logv("open about");
+                if (debug) Logv("open about");
                 openAboutPopup();
                 return true;
             case R.id.action_help:
-                Logv("reshow help");
+                if (debug) Logv("reshow help");
                 script.show(true);
                 return true;
             default:
@@ -276,7 +275,7 @@ public class GameActivity extends Activity implements AdapterView.OnItemSelected
                     case PLAY_MOVE:
                         int x = msg.arg1;
                         int y = msg.arg2;
-                        Logv("PLAY_MOVE: %d, %d", x, y);
+                        if (debug) Logv("PLAY_MOVE: %d, %d", x, y);
                         if (Board.get(game.board(), msg.arg1, msg.arg2) == 0) {
                             game.play(x, y, game.getCurrentPlayer());
                             if (game.status() == Game.PLAYING && game.getPlayer() != null)
@@ -292,7 +291,7 @@ public class GameActivity extends Activity implements AdapterView.OnItemSelected
                         sendSetInput();
                         break;
                     case PLAY_TAP:
-                        Logv("PLAY_TAP");
+                        if (debug) Logv("PLAY_TAP");
                         if (game.status() == Game.PLAYING) {
                             game.run(1);
                             if (game.status() != Game.PLAYING) {
@@ -308,10 +307,10 @@ public class GameActivity extends Activity implements AdapterView.OnItemSelected
                     case SET_PLAYER:
                         int which = msg.arg1;
                         int index = msg.arg2;
-                        Logv("SET_PLAYER: P%d->#%d%s", which+1, index, selectedPlayers[which] == index ? " IGNORED": "");
+                        if (debug) Logv("SET_PLAYER: P%d->#%d%s", which+1, index, selectedPlayers[which] == index ? " IGNORED": "");
                         if (selectedPlayers[which] == index)
                             break;
-                        Logd("change player %d to %d", which, index);
+                        if (debug) Logd("change player %d to %d", which, index);
                         storeGame();
                         players[which] = TicTacToeApp.app().getPlayer(index);
                         selectedPlayers[which] = index;
@@ -367,7 +366,7 @@ public class GameActivity extends Activity implements AdapterView.OnItemSelected
             values.put(AppDB.KEY_TALLY, tallyData);
             values.put(AppDB.KEY_RESULT, lastResult);
             long result = app.db.insert(AppDB.GAME_TABLE_NAME, null, values);
-            Logv("storeGame result: %d", result);
+            if (debug) Logv("storeGame result: %d", result);
         }
 
         private void restoreGame () {
@@ -386,7 +385,7 @@ public class GameActivity extends Activity implements AdapterView.OnItemSelected
                 }
             }
             result.close();
-            Logd("restoreGame: %s %s", storedGame, storedTally == null ? "null" : Arrays.toString(storedTally));
+            if (debug) Logd("restoreGame: %s %s", storedGame, storedTally == null ? "null" : Arrays.toString(storedTally));
             if (storedGame != null) {
                 game = storedGame;
             } else {
@@ -402,7 +401,7 @@ public class GameActivity extends Activity implements AdapterView.OnItemSelected
         }
 
         public Game newGame() {
-            Logv("newGame()");
+            if (debug) Logv("newGame()");
             game = new Game(players[0], players[1]);
             if (game.getPlayer(2) == null)
                 game.run(1);
@@ -425,7 +424,7 @@ public class GameActivity extends Activity implements AdapterView.OnItemSelected
 
         private void savePlayer(int select) {
             if (players[select] == null || !players[select].saveable()) {
-                Logv("savePlayer(%d): no state to save", select);
+                if (debug) Logv("savePlayer(%d): no state to save", select);
                 return;
             }
             Player player = players[select];
@@ -433,7 +432,7 @@ public class GameActivity extends Activity implements AdapterView.OnItemSelected
             long id = app.getPlayerID(player);
             ContentValues update = new ContentValues();
             update.put(AppDB.KEY_STATE, state);
-            Logd("savePlayer(%d): %s", select, update);
+            if (debug) Logd("savePlayer(%d): %s", select, update);
             String selector = String.format("_id=%d", id);
             app.db.update(AppDB.BRAINS_TABLE_NAME, update, selector, null);
         }
@@ -452,7 +451,7 @@ public class GameActivity extends Activity implements AdapterView.OnItemSelected
                 }
             } else
                 waitingPlayer = 3;
-            Logv("sendSetInput: sent %d %d", nextState,waitingPlayer);
+            if (debug) Logv("sendSetInput: sent %d %d", nextState,waitingPlayer);
             handler.sendMessage(UIHandler.WAIT_INPUT, nextState, waitingPlayer, null);
         }
 
@@ -476,7 +475,7 @@ public class GameActivity extends Activity implements AdapterView.OnItemSelected
             selectedPlayers = app.getObject("selectedPlayers");
             if (selectedPlayers == null)
                 selectedPlayers = new long[2];
-            Logd("selectedPlayers: %s", Arrays.toString(selectedPlayers));
+            if (debug) Logd("selectedPlayers: %s", Arrays.toString(selectedPlayers));
             final int[] selected = new int[2];
             for (int i = 0; i < 2; i++) {
                 long selectedID = playerSelectAdapter.getItemId(0);
@@ -487,7 +486,7 @@ public class GameActivity extends Activity implements AdapterView.OnItemSelected
                         break;
                     }
                 }
-                Logd("set player %d to index %d, id %d", i, selected[i], selectedID);
+                if (debug) Logd("set player %d to index %d, id %d", i, selected[i], selectedID);
                 selectedPlayers[i] = selectedID;
                 players[i] = app.getPlayer(selectedID);
             }
@@ -495,7 +494,7 @@ public class GameActivity extends Activity implements AdapterView.OnItemSelected
 
             int[] rngSeed = app.getObject("rngSeed");
             if (rngSeed == null) {
-                Logd("queueing entropy collection");
+                if (debug) Logd("queueing entropy collection");
                 // This could potentially block indefinitely, so it shouldn't run on the UI or game thread.
                 // Start as a bare thread because it's the only operation we're performing this way.
                 new Thread() {
@@ -512,14 +511,14 @@ public class GameActivity extends Activity implements AdapterView.OnItemSelected
                         for (int i = 0; i < seed.length; i++) {
                             seed[i] = r.nextInt();
                         }
-                        Logd("Got PRNG seed from SecureRandom %s %s", r.getAlgorithm(), r.getProvider().getInfo());
+                        if (debug) Logd("Got PRNG seed from SecureRandom %s %s", r.getAlgorithm(), r.getProvider().getInfo());
                         bgHandler.sendMessage(GameBGThread.GameHandler.SET_SEED, 0, 0, seed);
                     }
                 }.start();
 
             }
             else {
-                Logd("seeding PRNG with saved seed");
+                if (debug) Logd("seeding PRNG with saved seed");
                 Player.prng.setSeed(rngSeed);
             }
             restoreGame();
@@ -544,7 +543,7 @@ public class GameActivity extends Activity implements AdapterView.OnItemSelected
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case UPDATE_DISPLAY:
-                    Logv("UPDATE_DISPLAY: %s %s", Board.toString(msg.arg1), msg.obj);
+                    if (debug) Logv("UPDATE_DISPLAY: %s %s", Board.toString(msg.arg1), msg.obj);
                     gameView.setContents(msg.arg1);
                     if (msg.obj != null) {
                         tallyView.setText((String)msg.obj);
@@ -553,12 +552,12 @@ public class GameActivity extends Activity implements AdapterView.OnItemSelected
                     gameView.invalidate();
                     break;
                 case WAIT_INPUT:
-                    Logv("WAIT_INPUT: %d", msg.arg1);
+                    if (debug) Logv("WAIT_INPUT: %d", msg.arg1);
                     awaitingInput = msg.arg1 & 0xffff;
                     updateWaiting(msg.arg2);
                     break;
                 case INIT_COMPLETE:
-                    Logv("INIT_COMPLETE: %d %d %s", msg.arg1, msg.arg2, msg.obj);
+                    if (debug) Logv("INIT_COMPLETE: %d %d %s", msg.arg1, msg.arg2, msg.obj);
                     playerSelect[0].setAdapter((SpinnerAdapter) msg.obj);
                     playerSelect[1].setAdapter((SpinnerAdapter) msg.obj);
                     gameView.setOnTouchListener(new BoardGesturedHandler());
@@ -578,25 +577,21 @@ public class GameActivity extends Activity implements AdapterView.OnItemSelected
         for (int i = 0; i < 2; i++) {
             View target = playerColorBars[i];
             int color = colors[i + (player == 0 || player == i + 1 ? 2 : 0)];
-            Logv("Updatewaiting: %08x->%d", color, i);
+            if (debug) Logv("Updatewaiting: %08x->%d", color, i);
             target.setBackgroundColor(color);
             target.invalidate();
         }
     }
 
     private static void Logd(String text, Object... args) {
-        if (debug) {
-            if (args != null && args.length > 0)
-                text = String.format(text, args);
-            Log.d(TAG, text);
-        }
+        if (args != null && args.length > 0)
+            text = String.format(text, args);
+        Log.d(TAG, text);
     }
 
     private static void Logv(String text, Object... args) {
-        if (debug) {
-            if (args != null && args.length > 0)
-                text = String.format(text, args);
-            Log.v(TAG, text);
-        }
+        if (args != null && args.length > 0)
+            text = String.format(text, args);
+        Log.v(TAG, text);
     }
 }

@@ -52,13 +52,11 @@ public class GameView extends View {
     public GameView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         strokeWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, getContext().getResources().getDisplayMetrics());
-        Logv("strokeWidth: %f", strokeWidth);
         if (attrs != null)
             try {
                 TypedArray a  = getContext().obtainStyledAttributes(attrs, R.styleable.GameView);
                 board = a.getInt(R.styleable.GameView_contents, 0);
                 a.recycle();
-                Logv("contents: %d", board);
             } catch (NullPointerException e) {
             }
         paint.setStrokeWidth(strokeWidth);
@@ -76,17 +74,17 @@ public class GameView extends View {
             lockedWidth = 0;
         else if (hMode == MeasureSpec.UNSPECIFIED)
             lockedHeight = 0;
-        Logv("width: %s, height: %s", MeasureSpec.toString(widthSpec), MeasureSpec.toString(heightSpec));
+        if (debug) Logv("width: %s, height: %s", MeasureSpec.toString(widthSpec), MeasureSpec.toString(heightSpec));
         lockedWidth -= hPadding;
         lockedHeight -= vPadding;
         if (lockedWidth <= 0) {
-            Logv("expanding <0 width to match height");
+            if (debug) Logv("expanding <0 width to match height");
             lockedWidth = lockedHeight;
         } else if (lockedHeight <= 0) {
-            Logv("expanding <0 height to match width");
+            if (debug) Logv("expanding <0 height to match width");
             lockedHeight = lockedWidth;
         } else {
-            Logv("using minimum of %d and %d", lockedWidth, lockedHeight);
+            if (debug) Logv("using minimum of %d and %d", lockedWidth, lockedHeight);
             lockedHeight = lockedWidth = Math.min(lockedHeight, lockedWidth);
         }
         lockedWidth += hPadding;
@@ -94,8 +92,7 @@ public class GameView extends View {
         int widthSize = resolveSizeAndState(lockedWidth, widthSpec, 0);
         int heightSize = resolveSizeAndState(lockedHeight, heightSpec, 0);
         setMeasuredDimension(widthSize, heightSize);
-        Logv("layed out size: %dx%d", getWidth(), getHeight());
-        Logv("measured size: %dx%d [%d]", getMeasuredWidth(), getMeasuredHeight(), getMeasuredState());
+        if (debug) Logv("measured size: %dx%d", getMeasuredWidth(), getMeasuredHeight());
         if (getMeasuredHeight() > lockedHeight || getMeasuredWidth() > lockedWidth)
             requestLayout();
         width = lockedWidth;
@@ -127,7 +124,7 @@ public class GameView extends View {
     public int resolveBoardCoordinates(float x, float y) {
         int x_b = x < barOffset ? 0 : (x < width - barOffset ? 1 : 2);
         int y_b = y < barOffset ? 0 : (y < width - barOffset ? 1 : 2);
-        Logv("resolveBoardCoordinates: (%f,%f)->(%d,%d)", x, y, x_b, y_b);
+        if (debug) Logv("resolveBoardCoordinates: (%f,%f)->(%d,%d)", x, y, x_b, y_b);
         return Point.point(x_b, y_b);
     }
 
@@ -153,17 +150,14 @@ public class GameView extends View {
     }
 
     private static final void Logd(String text, Object... args) {
-        if (debug) {
-            if (args != null && args.length > 0)
-                text = String.format(text, args);
-            Log.d(TAG, text);
-        }
+        if (args != null && args.length > 0)
+            text = String.format(text, args);
+        Log.d(TAG, text);
     }
+
     private static final void Logv(String text, Object... args) {
-        if (debug) {
-            if (args != null && args.length > 0)
-                text = String.format(text, args);
-            Log.v(TAG, text);
-        }
+        if (args != null && args.length > 0)
+            text = String.format(text, args);
+        Log.v(TAG, text);
     }
 }

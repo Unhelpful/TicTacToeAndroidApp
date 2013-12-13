@@ -16,12 +16,12 @@
 
 package us.looking_glass.tictactoe.androidapp;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.content.ContentValues;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.os.*;
+import android.support.v7.app.ActionBarActivity;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
@@ -40,7 +40,7 @@ import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.concurrent.*;
 
-public class GameActivity extends Activity implements AdapterView.OnItemSelectedListener {
+public class GameActivity extends ActionBarActivity implements AdapterView.OnItemSelectedListener {
     private TicTacToeApp app = null;
     private Script script = null;
 
@@ -466,7 +466,7 @@ public class GameActivity extends Activity implements AdapterView.OnItemSelected
             super.onLooperPrepared();
             bgHandler = bgThread.new GameHandler(bgThread.getLooper());
             Cursor playerSelectCursor = app.db.query(true, AppDB.BRAINS_TABLE_NAME, spinnerQueryCols, null, null, null, null, AppDB.KEY_ID, null);
-            SimpleCursorAdapter playerSelectAdapter = new SimpleCursorAdapter(GameActivity.this, android.R.layout.simple_spinner_item, playerSelectCursor, spinnerAdapterCols, spinnerAdapterRowViews, 0);
+            SimpleCursorAdapter playerSelectAdapter = new SimpleCursorAdapter(GameActivity.this, android.R.layout.simple_spinner_item, playerSelectCursor, spinnerAdapterCols, spinnerAdapterRowViews);
             playerSelectAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
             tally = app.getObject("tally");

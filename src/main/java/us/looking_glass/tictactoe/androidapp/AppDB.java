@@ -167,9 +167,8 @@ public class AppDB extends SQLiteOpenHelper {
                 db.beginTransaction();
                 try {
                     ContentValues initInsert = new ContentValues();
-                    initInsert.put(KEY_NAME, "LMS Rank");
                     initInsert.put(KEY_STATE, lmsRankState);
-                    db.insertWithOnConflict(BRAINS_TABLE_NAME, null, initInsert, SQLiteDatabase.CONFLICT_REPLACE);
+                    db.update(BRAINS_TABLE_NAME, initInsert, KEY_NAME + "='LMS Rank", null);
                     db.execSQL("delete from " + GAME_TABLE_NAME + ";");
                     db.setTransactionSuccessful();
                 } finally {

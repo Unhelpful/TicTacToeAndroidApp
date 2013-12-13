@@ -36,12 +36,11 @@ public class TicTacToeApp extends Application {
     final static String TAG = "TicTacToe:App";
     Serializer serializer;
     Serializer gameSerializer;
-    private AppDB dbOpener;
     SQLiteDatabase db;
     final static boolean debug = false;
 
     private void openDB() {
-        dbOpener = new AppDB(this);
+        AppDB dbOpener = new AppDB(this);
         db = dbOpener.getWritableDatabase();
     }
 
@@ -131,7 +130,7 @@ public class TicTacToeApp extends Application {
     }
 
     private void putEntry(ContentValues entry) {
-        db.insertWithOnConflict(AppDB.APPSTATE_TABLE_NAME, null, entry, SQLiteDatabase.CONFLICT_REPLACE);
+        db.insert(AppDB.APPSTATE_TABLE_NAME, null, entry);
     }
     public int getInt(String key, int def) {
         Cursor result = retrieveValue(key);

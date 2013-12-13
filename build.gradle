@@ -17,6 +17,7 @@ dependencies {
     compile project(':util')
     compile project(':TicTacToe_lib')
     compile project(':Spotlight:library')
+    compile 'com.android.support:appcompat-v7:18.0.+'
 }
 
 android {

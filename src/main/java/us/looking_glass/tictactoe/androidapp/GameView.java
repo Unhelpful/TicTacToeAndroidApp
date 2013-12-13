@@ -89,10 +89,13 @@ public class GameView extends View {
         }
         lockedWidth += hPadding;
         lockedHeight += vPadding;
-        int widthSize = resolveSizeAndState(lockedWidth, widthSpec, 0);
-        int heightSize = resolveSizeAndState(lockedHeight, heightSpec, 0);
+        int widthSize = resolveSize(lockedWidth, widthSpec);
+        int heightSize = resolveSize(lockedHeight, heightSpec);
         setMeasuredDimension(widthSize, heightSize);
-        if (debug) Logv("measured size: %dx%d", getMeasuredWidth(), getMeasuredHeight());
+        if (debug) {
+            Logv("layed out size: %dx%d", getWidth(), getHeight());
+            Logv("measured size: %dx%d", getMeasuredWidth(), getMeasuredHeight());
+        }
         if (getMeasuredHeight() > lockedHeight || getMeasuredWidth() > lockedWidth)
             requestLayout();
         width = lockedWidth;

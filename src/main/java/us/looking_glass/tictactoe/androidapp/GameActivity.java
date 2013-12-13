@@ -385,6 +385,7 @@ public class GameActivity extends Activity implements AdapterView.OnItemSelected
                     Log.e(TAG, "Error restoring game", e);
                 }
             }
+            result.close();
             Logd("restoreGame: %s %s", storedGame, storedTally == null ? "null" : Arrays.toString(storedTally));
             if (storedGame != null) {
                 game = storedGame;

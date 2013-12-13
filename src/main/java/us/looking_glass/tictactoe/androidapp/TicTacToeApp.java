@@ -85,22 +85,26 @@ public class TicTacToeApp extends Application {
         }
         String queryString = String.format("_id=%d", id);
         Cursor result = db.query(AppDB.BRAINS_TABLE_NAME, AppDB.ID_STATE_COLS, queryString, null, null, null, AppDB.KEY_ID, null);
-        Logd("getPlayer(%d): %d results", id, result.getCount());
-        if (result.getCount() != 1 || !result.moveToFirst())
-            return null;
-        int colIndex = result.getColumnIndexOrThrow(AppDB.KEY_STATE);
-        byte[] state = result.getBlob(colIndex);
-        Player playerResult = null;
-        if (state != null)
-            playerResult = (Player) serializer().fromBytes(state);
-        if (playerResult == null) {
-            idToPlayer.put(id, null);
-            return null;
+        try {
+            Logd("getPlayer(%d): %d results", id, result.getCount());
+            if (result.getCount() != 1 || !result.moveToFirst())
+                return null;
+            int colIndex = result.getColumnIndexOrThrow(AppDB.KEY_STATE);
+            byte[] state = result.getBlob(colIndex);
+            Player playerResult = null;
+            if (state != null)
+                playerResult = (Player) serializer().fromBytes(state);
+            if (playerResult == null) {
+                idToPlayer.put(id, null);
+                return null;
+            }
+            Logd("getPlayer(%d): retrieved %s from db", id, playerResult);
+            playerToId.put(playerResult, id);
+            idToPlayer.put(id, new WeakReference<Player>(playerResult));
+            return playerResult;
+        } finally {
+            result.close();
         }
-        Logd("getPlayer(%d): retrieved %s from db", id, playerResult);
-        playerToId.put(playerResult, id);
-        idToPlayer.put(id, new WeakReference<Player>(playerResult));
-        return playerResult;
     }
 
     long getPlayerID(Player player) {
@@ -112,8 +116,10 @@ public class TicTacToeApp extends Application {
     private Cursor retrieveValue(String key) {
         String queryString = AppDB.KEY_NAME + "='" + key + "'";
         Cursor result = app().db.query(true, AppDB.APPSTATE_TABLE_NAME, AppDB.NAME_VALUE_COLS, queryString, null, null,null, null, "1");
-        if (result.getCount() != 1)
+        if (result.getCount() != 1) {
+            result.close();
             return null;
+        }
         result.moveToFirst();
         return result;
     }
@@ -131,8 +137,9 @@ public class TicTacToeApp extends Application {
         Cursor result = retrieveValue(key);
         if (result == null)
             return def;
-        else
+        try {
             return result.getInt(result.getColumnIndexOrThrow(AppDB.KEY_VALUE));
+        } finally { result.close(); }
     }
 
     public void putState(String key, int value) {
@@ -145,8 +152,9 @@ public class TicTacToeApp extends Application {
         Cursor result = retrieveValue(key);
         if (result == null)
             return null;
-        else
+        try {
             return result.getString(result.getColumnIndexOrThrow(AppDB.KEY_VALUE));
+        } finally { result.close(); }
     }
 
     public void putState(String key, String value) {
@@ -159,8 +167,9 @@ public class TicTacToeApp extends Application {
         Cursor result = retrieveValue(key);
         if (result == null)
             return null;
-        else
+        try {
             return result.getBlob(result.getColumnIndexOrThrow(AppDB.KEY_VALUE));
+        } finally { result.close(); }
     }
 
     public void putState(String key, byte[] value) {
@@ -173,8 +182,9 @@ public class TicTacToeApp extends Application {
         Cursor result = retrieveValue(key);
         if (result == null)
             return null;
-        else
+        try {
             return (T) serializer.fromBytes(result.getBlob(result.getColumnIndexOrThrow(AppDB.KEY_VALUE)));
+        } finally { result.close(); }
     }
 
     public <T> void putState(String key, T value, Serializer serializer) {
